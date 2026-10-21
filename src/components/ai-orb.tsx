@@ -95,12 +95,12 @@ export function AiOrb({
     )
   }
 
-  // Pill badge layout matching Jakub Antalik's Thinking Orbs demo (libraries.dev/orbs)
+  // Pill badge layout in dark navy blue (matching CareDesk primary theme)
   return (
     <div
       className={cn(
         'inline-flex items-center gap-2.5 rounded-full px-3.5 py-1.5 shadow-sm transition-all duration-200 select-none',
-        'bg-neutral-900/95 text-neutral-100 border border-neutral-700/60 backdrop-blur-md',
+        'bg-primary text-white border border-white/15 shadow-md backdrop-blur-md',
         className
       )}
       role="status"
@@ -114,7 +114,7 @@ export function AiOrb({
           aria-label={currentLabel}
         />
       </div>
-      <span className="text-[13px] font-medium tracking-normal text-neutral-200">
+      <span className="text-[13px] font-medium tracking-normal text-white/95">
         {currentLabel}
       </span>
     </div>
