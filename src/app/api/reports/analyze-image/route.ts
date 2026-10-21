@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     const buffer = await response.arrayBuffer()
     const base64 = Buffer.from(buffer).toString('base64')
 
-    const prompt = `Analyze this medical report image. Extract all visible text, lab values, diagnoses, and medications. Provide a clear summary.`
+    const prompt = `Analyze this medical report image. Extract all visible text, lab values, diagnoses, and medications. Provide a well-structured summary using markdown headings (###), bold text (**term**) for key metrics and diagnoses, and bullet points (- ) for lists.`
 
     const result = await generateTextWithImages(prompt, [
       { data: base64, mimeType: report.mime_type || 'image/jpeg' },
