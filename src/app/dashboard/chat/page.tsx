@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { useLanguage } from '@/lib/i18n/language-context'
 import { MessageSquare, Send, Trash2, Loader2, ImagePlus, X } from 'lucide-react'
+import { Markdown } from '@/components/markdown'
 
 interface Message {
   id: string
@@ -203,11 +204,11 @@ export default function ChatPage() {
                       : 'glass-panel text-on-surface'
                   }`}
                 >
-                  <p className="whitespace-pre-wrap">{msg.content || (
-                    msg.role === 'assistant' && loading && msg.id === messages[messages.length - 1]?.id ? (
-                      <Loader2 className="inline size-4 animate-spin" />
-                    ) : null
-                  )}</p>
+                  {msg.content ? (
+                    <Markdown content={msg.content} />
+                  ) : msg.role === 'assistant' && loading && msg.id === messages[messages.length - 1]?.id ? (
+                    <Loader2 className="inline size-4 animate-spin" />
+                  ) : null}
                 </div>
               </div>
             ))

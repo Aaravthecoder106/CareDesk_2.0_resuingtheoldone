@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Logo } from '@/components/logo'
 import { Loader2, Lock, FileText, ArrowRight, CheckCircle2, AlertTriangle, AlertCircle, XCircle, Shield } from 'lucide-react'
 import { savePreviewTokenForMigration } from '@/components/guest-migration'
+import { Markdown } from '@/components/markdown'
 
 interface LabResult {
   test_name: string
@@ -169,7 +170,7 @@ export default function PreviewPage() {
             </div>
             <h2 className="text-[16px] font-semibold text-deep-navy">AI Summary</h2>
           </div>
-          <p className="text-[15px] text-on-surface leading-[24px]">{data.summary}</p>
+          <Markdown content={data.summary} className="text-[15px] text-on-surface leading-[24px]" />
         </div>
 
         {/* Lab Results */}
