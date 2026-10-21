@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { useLanguage } from '@/lib/i18n/language-context'
 import { FolderOpen, Upload, Trash2, RefreshCw, FileText, Loader2, Lock, Eye } from 'lucide-react'
+import { AiOrb } from '@/components/ai-orb'
 
 interface Report {
   id: string
@@ -278,6 +279,13 @@ export default function ReportsPage() {
         </div>
       </div>
 
+      {/* Uploading & AI Processing State with Premium Orb */}
+      {uploading && (
+        <div className="mb-6 glass-panel-strong rounded-2xl p-6 border border-secondary/30 bg-surface-container/70 shadow-lg flex flex-col items-center justify-center">
+          <AiOrb mode="report" size="md" statusText={uploadProgress || undefined} />
+        </div>
+      )}
+
       {/* AI Summary Overview */}
       <div className="mb-6 glass-panel rounded-xl p-4 border border-electric-blue/10 ai-glow">
         <div className="flex items-center gap-2 mb-2">
@@ -303,8 +311,8 @@ export default function ReportsPage() {
         </div>
       ) : reports.length === 0 ? (
         <div className="glass-panel organic-radius flex flex-col items-center justify-center py-16">
-          <FolderOpen className="size-12 text-on-surface-variant/50" />
-          <h3 className="mt-4 text-[16px] font-semibold text-deep-navy">{t('reports.empty.title')}</h3>
+          <AiOrb mode="report" size="md" showLabel={false} className="mb-3" />
+          <h3 className="mt-2 text-[16px] font-semibold text-deep-navy">{t('reports.empty.title')}</h3>
           <p className="mt-1 text-[14px] text-on-surface-variant">
             {t('reports.empty.desc')}
           </p>

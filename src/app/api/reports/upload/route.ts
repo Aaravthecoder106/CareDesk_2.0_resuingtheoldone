@@ -6,8 +6,6 @@ import { uploadLimiter } from '@/lib/rate-limit'
 import { applyRateLimit, apiError } from '@/lib/api-helpers'
 import { logger } from '@/lib/logger'
 import { logAudit, requestIp } from '@/lib/data/audit'
-import { getUserReportCount, getUserSubscription } from '@/lib/data/subscriptions'
-import { getPlanLimits } from '@/lib/razorpay'
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024 // 20 MB
 
@@ -31,21 +29,6 @@ export async function POST(req: NextRequest) {
     step = 'rate-limit'
     const rateLimited = applyRateLimit(req, uploadLimiter, userId)
     if (rateLimited) return rateLimited
-
-    // Check subscription upload limit
-    step = 'check-limit'
-    const [tier, reportCount] = await Promise.all([
-      getUserSubscription(userId),
-      getUserReportCount(userId),
-    ])
-    const limits = getPlanLimits(tier)
-    if (limits.maxReportsPerMonth !== Infinity && reportCount >= limits.maxReportsPerMonth) {
-      const tierLabel = limits.isFamily ? 'Family Care' : limits.isPro ? 'Pro' : 'Free'
-      return apiError(
-        `You've reached the ${limits.maxReportsPerMonth}-report limit on the ${tierLabel} plan. Upgrade for more uploads.`,
-        403
-      )
-    }
 
     const contentType = req.headers.get('content-type') || ''
 

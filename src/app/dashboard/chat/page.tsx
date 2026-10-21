@@ -3,8 +3,9 @@
 import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { useLanguage } from '@/lib/i18n/language-context'
-import { MessageSquare, Send, Trash2, Loader2, ImagePlus, X } from 'lucide-react'
+import { Send, Trash2, Loader2, ImagePlus, X } from 'lucide-react'
 import { Markdown } from '@/components/markdown'
+import { AiOrb } from '@/components/ai-orb'
 
 interface Message {
   id: string
@@ -18,6 +19,7 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [activeMode, setActiveMode] = useState<'chat' | 'image'>('chat')
   const [historyLoading, setHistoryLoading] = useState(true)
   const [image, setImage] = useState<{ data: string; mimeType: string; preview: string } | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -79,6 +81,7 @@ export default function ChatPage() {
     setMessages(prev => [...prev, userMsg])
     setInput('')
     setImage(null)
+    setActiveMode(attached ? 'image' : 'chat')
     setLoading(true)
 
     const assistantId = crypto.randomUUID()
@@ -188,9 +191,7 @@ export default function ChatPage() {
             </div>
           ) : messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12">
-              <div className="w-16 h-16 rounded-full bg-electric-blue/10 flex items-center justify-center mb-4 ai-glow">
-                <MessageSquare className="size-8 text-electric-blue" />
-              </div>
+              <AiOrb size="lg" mode="chat" showLabel={false} className="mb-4" />
               <h3 className="mt-2 text-[16px] font-semibold text-deep-navy">{t('chat.empty.title')}</h3>
               <p className="mt-1 text-[14px] text-on-surface-variant text-center max-w-sm">
                 {t('chat.empty.desc')}
@@ -206,13 +207,25 @@ export default function ChatPage() {
                   className={`max-w-[90%] sm:max-w-[80%] rounded-2xl px-3.5 sm:px-4 py-2.5 sm:py-3 text-[13px] sm:text-[14px] ${
                     msg.role === 'user'
                       ? 'bg-primary text-white'
+                      : !msg.content && loading && msg.id === messages[messages.length - 1]?.id
+                      ? 'glass-panel-strong border border-secondary/30 bg-surface-container/70 shadow-lg'
                       : 'glass-panel text-on-surface'
                   }`}
                 >
                   {msg.content ? (
-                    <Markdown content={msg.content} />
+                    <div className="space-y-2">
+                      <Markdown content={msg.content} />
+                      {msg.role === 'assistant' && loading && msg.id === messages[messages.length - 1]?.id && (
+                        <div className="flex items-center gap-2 pt-2 mt-2 border-t border-outline-variant/25 text-[12px] text-secondary font-medium">
+                          <AiOrb size="sm" showLabel={false} />
+                          <span className="animate-pulse">Generating clinical response...</span>
+                        </div>
+                      )}
+                    </div>
                   ) : msg.role === 'assistant' && loading && msg.id === messages[messages.length - 1]?.id ? (
-                    <Loader2 className="inline size-4 animate-spin" />
+                    <div className="py-2.5 px-2 flex flex-col items-center">
+                      <AiOrb mode={activeMode} size="md" />
+                    </div>
                   ) : null}
                 </div>
               </div>

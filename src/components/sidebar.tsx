@@ -28,7 +28,6 @@ export function Sidebar() {
     { href: '/dashboard/analytics', label: t('nav.analytics'), icon: BarChart3 },
     { href: '/dashboard/family', label: t('nav.family'), icon: Users },
     { href: '/dashboard/settings', label: t('nav.settings'), icon: Settings },
-    { href: '/dashboard/upgrade', label: t('nav.upgrade'), icon: Sparkles },
   ]
 
   return (

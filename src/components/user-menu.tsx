@@ -71,13 +71,6 @@ export function UserMenu() {
           <Settings className="size-4 text-on-surface-variant" />
           Settings
         </DropdownMenuItem>
-        <DropdownMenuItem
-          className="gap-2 px-2 py-2 text-sm"
-          onClick={() => router.push('/dashboard/upgrade')}
-        >
-          <Sparkles className="size-4 text-on-surface-variant" />
-          Upgrade
-        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           variant="destructive"

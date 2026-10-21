@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { getUserSubscription, getUserReportCount, getUserFamilyCount, getSubscriptionDetails } from '@/lib/data/subscriptions'
-import { getPlanLimits, PLANS } from '@/lib/razorpay'
+import { getUserReportCount, getUserFamilyCount } from '@/lib/data/subscriptions'
 
 /**
  * GET /api/subscription/status
- * Returns the current user's subscription tier, usage, and limits.
+ * In 100% Free & Unlimited mode, all users have unlocked Pro & Family status.
  */
 export async function GET() {
   try {
@@ -16,38 +15,39 @@ export async function GET() {
     }
     const userId = user.id
 
-    const [tier, reportCount, familyCount, details] = await Promise.all([
-      getUserSubscription(userId),
+    const [reportCount, familyCount] = await Promise.all([
       getUserReportCount(userId),
       getUserFamilyCount(userId),
-      getSubscriptionDetails(userId),
     ])
 
-    const limits = getPlanLimits(tier)
-
-    const plan = PLANS[tier as keyof typeof PLANS] || PLANS.free
-
     return NextResponse.json({
-      tier,
+      tier: 'unlimited',
       plan: {
-        name: plan.name,
-        priceGlobal: plan.priceGlobal,
-        priceIndia: plan.priceIndia,
-        features: plan.features,
+        name: 'CareDesk Unlimited (100% Free)',
+        priceGlobal: '$0',
+        priceIndia: '₹0',
+        features: [
+          'Unlimited report uploads & storage',
+          'Unlimited AI health chat with rich markdown',
+          'Full biomarker trend graphs & analytics',
+          'Unlimited family members & profiles',
+          'Priority AI processing speed',
+          'PDF export & clinical summary',
+        ],
       },
       limits: {
-        maxReportsPerMonth: limits.maxReportsPerMonth === Infinity ? -1 : limits.maxReportsPerMonth,
-        lifetimeCap: limits.lifetimeCap,
-        maxProfiles: limits.maxProfiles,
+        maxReportsPerMonth: -1,
+        lifetimeCap: false,
+        maxProfiles: -1,
       },
       usage: {
         reports: reportCount,
         familyMembers: familyCount,
       },
       subscription: {
-        status: details.status,
-        currentPeriodEnd: details.currentPeriodEnd,
-        razorpayPaymentId: details.razorpayPaymentId,
+        status: 'active',
+        currentPeriodEnd: null,
+        razorpayPaymentId: null,
       },
     })
   } catch (error) {

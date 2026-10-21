@@ -192,6 +192,112 @@
   animation: ai-glow 3s ease-in-out infinite;
 }
 
+/* ===== Premium AI Orb Keyframes & Utilities ===== */
+
+@keyframes orb-breathe {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 18px rgba(0, 224, 255, 0.5)) drop-shadow(0 0 35px rgba(0, 89, 187, 0.4));
+  }
+  50% {
+    transform: scale(1.07);
+    filter: drop-shadow(0 0 28px rgba(0, 224, 255, 0.85)) drop-shadow(0 0 50px rgba(139, 92, 246, 0.55));
+  }
+}
+
+@keyframes orb-float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes orb-swirl {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.1);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+@keyframes orb-swirl-reverse {
+  0% {
+    transform: rotate(360deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes orb-pulse-ring {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.4);
+    opacity: 0.35;
+  }
+  100% {
+    transform: scale(1.85);
+    opacity: 0;
+  }
+}
+
+@keyframes orb-shimmer-pass {
+  0% {
+    transform: translateX(-120%) rotate(25deg);
+  }
+  100% {
+    transform: translateX(220%) rotate(25deg);
+  }
+}
+
+@keyframes thought-fade {
+  0% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-orb-breathe {
+  animation: orb-breathe 3.2s ease-in-out infinite;
+}
+
+.animate-orb-float {
+  animation: orb-float 4.5s ease-in-out infinite;
+}
+
+.animate-orb-swirl {
+  animation: orb-swirl 10s linear infinite;
+}
+
+.animate-orb-swirl-reverse {
+  animation: orb-swirl-reverse 14s linear infinite;
+}
+
+.animate-orb-pulse-ring {
+  animation: orb-pulse-ring 2.8s cubic-bezier(0.1, 0.8, 0.2, 1) infinite;
+}
+
+.animate-orb-pulse-ring-delayed {
+  animation: orb-pulse-ring 2.8s cubic-bezier(0.1, 0.8, 0.2, 1) infinite 1.4s;
+}
+
+.animate-thought-fade {
+  animation: thought-fade 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 /* Hide scrollbar on mobile for cleaner look */
 @layer utilities {
   .scrollbar-hide {

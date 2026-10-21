@@ -14,53 +14,34 @@ const VALID_TIERS: PlanTier[] = [
 
 /**
  * Get the current user's subscription tier.
- * Falls back to 'free' if no subscription record exists, the period has
- * lapsed, or the stored plan is not a known tier.
+ * Unlocked 100% Free & Unlimited: defaults to the highest tier ('family_annual') for all users.
  */
-export async function getUserSubscription(userId: string): Promise<PlanTier> {
-  const supabase = createAdminSupabaseClient()
-  const { data } = await supabase
-    .from('subscriptions')
-    .select('plan, status, current_period_end')
-    .eq('user_id', userId)
-    .single()
-
-  if (!data) return 'free'
-  if (data.status !== 'active') return 'free'
-  // Payments are one-time orders with a computed period end; once the period
-  // lapses the user is back on the free tier until they pay again.
-  if (data.current_period_end && new Date(data.current_period_end).getTime() < Date.now()) {
-    return 'free'
-  }
-  if (VALID_TIERS.includes(data.plan as PlanTier)) return data.plan as PlanTier
-  return 'free'
+export async function getUserSubscription(_userId: string): Promise<PlanTier> {
+  return 'family_annual'
 }
 
 /**
  * Check if the user has any active paid subscription.
+ * Unlocked 100% Free & Unlimited: all users have Pro/Family access.
  */
-export async function isProUser(userId: string): Promise<boolean> {
-  const tier = await getUserSubscription(userId)
-  return tier !== 'free'
+export async function isProUser(_userId: string): Promise<boolean> {
+  return true
 }
 
 /**
  * Get the user's monthly report limit.
- * For 'free' tier, this is the lifetime cap (2).
+ * Unlocked 100% Free & Unlimited.
  */
-export async function getUserReportLimit(userId: string): Promise<number> {
-  const tier = await getUserSubscription(userId)
-  const limits = getPlanLimits(tier)
-  return limits.maxReportsPerMonth === Infinity ? Infinity : limits.maxReportsPerMonth
+export async function getUserReportLimit(_userId: string): Promise<number> {
+  return Infinity
 }
 
 /**
  * Get the user's family/profile limit.
+ * Unlocked 100% Free & Unlimited.
  */
-export async function getUserFamilyLimit(userId: string): Promise<number> {
-  const tier = await getUserSubscription(userId)
-  const limits = getPlanLimits(tier)
-  return limits.maxProfiles
+export async function getUserFamilyLimit(_userId: string): Promise<number> {
+  return Infinity
 }
 
 /**

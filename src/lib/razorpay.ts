@@ -163,14 +163,14 @@ export function verifyRazorpaySignature(params: {
 
 /**
  * Get the plan limits for a given tier.
+ * In 100% Free & Unlimited mode, all users have full access with zero caps.
  */
-export function getPlanLimits(tier: PlanTier) {
-  const plan = PLANS[tier]
+export function getPlanLimits(_tier?: PlanTier) {
   return {
-    maxReportsPerMonth: plan.maxReportsPerMonth,
-    lifetimeCap: plan.lifetimeCap,
-    maxProfiles: plan.maxProfiles,
-    isPro: tier !== 'free',
-    isFamily: tier.startsWith('family_'),
+    maxReportsPerMonth: Infinity,
+    lifetimeCap: false,
+    maxProfiles: Infinity,
+    isPro: true,
+    isFamily: true,
   }
 }

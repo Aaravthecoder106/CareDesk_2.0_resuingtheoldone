@@ -326,7 +326,7 @@ export default function PreviewPage() {
             </Link>
           </div>
           <p className="mt-4 text-[12px] text-on-surface-variant/60">
-            No credit card required · 2 free reports · Upgrade anytime
+            100% Free & Unlimited · No credit card required · Instant clinical insights
           </p>
         </div>
       </div>
