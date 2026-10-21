@@ -1,10 +1,11 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { clearChatHistory } from '@/lib/data/chat'
 import { apiError } from '@/lib/api-helpers'
 import { logger } from '@/lib/logger'
+import { logAudit, requestIp } from '@/lib/data/audit'
 
-export async function DELETE() {
+export async function DELETE(req: NextRequest) {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -12,6 +13,16 @@ export async function DELETE() {
     const userId = user.id
 
     const ok = await clearChatHistory()
+
+    // Audit log clearing of chat history (HIPAA compliance)
+    await logAudit({
+      actorId: userId,
+      action: 'DELETE',
+      table: 'chat_messages',
+      recordId: 'all',
+      ip: requestIp(req),
+    })
+
     logger.info({ route: '/api/chat/clear', userId, ok }, 'Chat history cleared')
     return NextResponse.json({ ok })
   } catch (err) {

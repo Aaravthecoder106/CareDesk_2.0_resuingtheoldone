@@ -1,6 +1,9 @@
 import 'server-only'
 import { generateText, generateTextWithImages } from './gemini'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminSupabaseClient } from '@/lib/supabase/admin'
+import { logger } from '@/lib/logger'
+import { logAudit } from '@/lib/data/audit'
 
 /**
  * Non-streaming chat (used for image attachments and fallback).
@@ -104,11 +107,32 @@ User's Medical Data:
 }
 
 async function saveMessages(userId: string, userMessage: string, assistantReply: string, hasImage: boolean) {
-  const supabase = await createClient()
-  await supabase.from('chat_messages').insert([
-    { user_id: userId, role: 'user', content: hasImage ? `${userMessage} [image attached]` : userMessage },
-    { user_id: userId, role: 'assistant', content: assistantReply },
-  ])
+  try {
+    const admin = createAdminSupabaseClient()
+    const { data, error } = await admin.from('chat_messages').insert([
+      { user_id: userId, role: 'user', content: hasImage ? `${userMessage} [image attached]` : userMessage },
+      { user_id: userId, role: 'assistant', content: assistantReply },
+    ]).select('id')
+
+    if (error) {
+      logger.error({ userId, err: error.message }, 'Failed to persist chat messages')
+      return false
+    }
+
+    // HIPAA audit trail: record chat interaction
+    const insertedIds = data?.map(d => d.id).join(',') || 'unknown'
+    await logAudit({
+      actorId: userId,
+      action: 'INSERT',
+      table: 'chat_messages',
+      recordId: insertedIds,
+    })
+
+    return true
+  } catch (err) {
+    logger.error({ userId, err: err instanceof Error ? err.message : String(err) }, 'Exception saving chat messages')
+    return false
+  }
 }
 
 /**

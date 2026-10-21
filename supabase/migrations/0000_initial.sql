@@ -321,7 +321,7 @@ CREATE TABLE public.chat_messages (
   content    TEXT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-GRANT SELECT, INSERT, UPDATE, DELETE ON public.chat_messages TO authenticated;
+GRANT SELECT, INSERT, DELETE ON public.chat_messages TO authenticated;
 GRANT ALL ON public.chat_messages TO service_role;
 ALTER TABLE public.chat_messages ENABLE ROW LEVEL SECURITY;
 

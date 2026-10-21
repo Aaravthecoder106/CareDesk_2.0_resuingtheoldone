@@ -106,6 +106,12 @@ const check = (name, passed, detail = '') => {
   check('B reads own patient profile', !error && (data?.length ?? 0) === 1, error?.message)
 }
 
+// 6. A cannot read B's chat messages (proves chat RLS cross-user isolation).
+{
+  const { data, error } = await a.from('chat_messages').select('id').eq('user_id', USER_B_ID)
+  check('A cannot read B chat messages', !error && (data?.length ?? 0) === 0, error?.message)
+}
+
 console.log('')
 if (failures > 0) {
   console.error(`${failures} check(s) FAILED — RLS is not isolating users correctly.`)
