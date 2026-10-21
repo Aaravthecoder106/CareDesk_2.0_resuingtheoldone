@@ -290,7 +290,9 @@ CareDesk-ip-reviewmaker-main/ (Workspace Root)
      - **Blockquotes** (`> notice`) for safety disclaimers.
    - Calls Gemini (`gemini-3-flash-preview` with automatic fallback to `gemini-flash-lite-latest` on 429/503/404 errors).
    - Client renders formatted output using zero-dependency `<Markdown />` component (`src/components/markdown.tsx`).
-   - Saves both user query and assistant reply in `chat_messages`.
+   - Saves both user query and assistant reply in `chat_messages` using `createAdminSupabaseClient()` with structured error logging.
+   - Enforces strict HIPAA audit trails in `audit_logs` on all chat message inserts, history reads, and deletions.
+   - Protected by Row Level Security (`auth.uid() = user_id`) with immutable history (UPDATE disabled).
 
 ### D. Subscriptions & Payments (Razorpay)
 1. **Plan Tiers:** Defined in `src/lib/razorpay.ts`:
