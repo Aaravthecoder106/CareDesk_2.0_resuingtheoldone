@@ -1,5 +1,6 @@
 'use client'
 
+import { BorderBeam } from 'border-beam'
 import { useLanguage } from '@/lib/i18n/language-context'
 import {
   FolderOpen,
@@ -94,38 +95,42 @@ export function DashboardContent({ firstName, hasPatient }: DashboardContentProp
       </div>
 
       {/* Featured Elder Care Banner */}
-      <div className="mb-8 glass-panel-strong rounded-2xl p-5 sm:p-6 border border-electric-blue/30 bg-gradient-to-r from-secondary/10 via-white/80 to-electric-blue/10 shadow-sm relative overflow-hidden">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
-          <div className="space-y-1.5 max-w-2xl">
-            <div className="flex items-center gap-2 text-secondary font-bold text-[12px] uppercase tracking-wider">
-              <Sparkles className="size-4" />
-              <span>Instant Game-Style Invite & Connect</span>
-            </div>
-            <h2 className="text-[17px] sm:text-[19px] font-bold text-deep-navy">
-              Keep Aging Parents & Family Caregivers In Complete Sync
-            </h2>
-            <p className="text-[13px] sm:text-[14px] text-on-surface-variant leading-relaxed">
-              Generate a friendly 6-character Care Code (e.g. <code className="font-mono font-bold text-deep-navy">CARE-782</code>) to connect elders and caregivers in 10 seconds. Unlocks shared blood panels, prescription alerts, and AI health consults.
-            </p>
-          </div>
+      <div className="mb-8">
+        <BorderBeam size="md" colorVariant="ocean" strength={0.7} theme="light">
+          <div className="glass-panel-strong rounded-2xl p-5 sm:p-6 border border-electric-blue/30 bg-gradient-to-r from-secondary/10 via-white/80 to-electric-blue/10 shadow-sm relative overflow-hidden">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
+              <div className="space-y-1.5 max-w-2xl">
+                <div className="flex items-center gap-2 text-secondary font-bold text-[12px] uppercase tracking-wider">
+                  <Sparkles className="size-4" />
+                  <span>Instant Game-Style Invite & Connect</span>
+                </div>
+                <h2 className="text-[17px] sm:text-[19px] font-bold text-deep-navy">
+                  Keep Aging Parents & Family Caregivers In Complete Sync
+                </h2>
+                <p className="text-[13px] sm:text-[14px] text-on-surface-variant leading-relaxed">
+                  Generate a friendly 6-character Care Code (e.g. <code className="font-mono font-bold text-deep-navy">CARE-782</code>) to connect elders and caregivers in 10 seconds. Unlocks shared blood panels, prescription alerts, and AI health consults.
+                </p>
+              </div>
 
-          <div className="flex items-center gap-2.5 shrink-0">
-            <Link
-              href="/dashboard/family"
-              className="bg-primary text-white hover:bg-primary/90 px-4 py-2.5 rounded-xl text-[13px] font-bold transition-all inline-flex items-center gap-2 shadow-sm"
-            >
-              <Users className="size-4" />
-              <span>Open Care Circle</span>
-            </Link>
-            <Link
-              href="/dashboard/chat"
-              className="bg-white/80 hover:bg-white text-deep-navy border border-outline-variant/60 px-4 py-2.5 rounded-xl text-[13px] font-bold transition-all inline-flex items-center gap-2"
-            >
-              <MessageSquare className="size-4 text-secondary" />
-              <span>Ask AI Consult</span>
-            </Link>
+              <div className="flex items-center gap-2.5 shrink-0">
+                <Link
+                  href="/dashboard/family"
+                  className="bg-primary text-white hover:bg-primary/90 px-4 py-2.5 rounded-xl text-[13px] font-bold transition-all inline-flex items-center gap-2 shadow-sm"
+                >
+                  <Users className="size-4" />
+                  <span>Open Care Circle</span>
+                </Link>
+                <Link
+                  href="/dashboard/chat"
+                  className="bg-white/80 hover:bg-white text-deep-navy border border-outline-variant/60 px-4 py-2.5 rounded-xl text-[13px] font-bold transition-all inline-flex items-center gap-2"
+                >
+                  <MessageSquare className="size-4 text-secondary" />
+                  <span>Ask AI Consult</span>
+                </Link>
+              </div>
+            </div>
           </div>
-        </div>
+        </BorderBeam>
       </div>
 
       {/* Quick Actions Grid */}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, Suspense } from 'react'
+import { BorderBeam } from 'border-beam'
 import { Button } from '@/components/ui/button'
 import { useLanguage } from '@/lib/i18n/language-context'
 import { Send, Trash2, Loader2, ImagePlus, X, Users, Sparkles, Shield, User } from 'lucide-react'
@@ -273,16 +274,20 @@ function ChatContent() {
 
       {/* Active Context Banner */}
       {activeElder && selectedPatientId !== 'me' && (
-        <div className="mb-3 glass-panel rounded-xl px-3.5 py-2 border border-secondary/30 bg-secondary/5 flex items-center justify-between animate-fadeIn">
-          <div className="flex items-center gap-2 text-[12px] text-deep-navy">
-            <Sparkles className="size-3.5 text-secondary shrink-0" />
-            <span>
-              Consulting AI regarding <strong>{activeElder.display_name}</strong> ({activeElder.relation || 'Connected Elder'}). Verified medical reports, labs & medications are referenced.
-            </span>
-          </div>
-          <span className="text-[10px] font-bold tracking-wider uppercase text-secondary bg-secondary/10 px-2 py-0.5 rounded-full shrink-0">
-            Caregiver Mode
-          </span>
+        <div className="mb-3">
+          <BorderBeam size="line" colorVariant="ocean" strength={0.8} theme="light">
+            <div className="glass-panel rounded-xl px-3.5 py-2 border border-secondary/30 bg-secondary/5 flex items-center justify-between animate-fadeIn">
+              <div className="flex items-center gap-2 text-[12px] text-deep-navy">
+                <Sparkles className="size-3.5 text-secondary shrink-0" />
+                <span>
+                  Consulting AI regarding <strong>{activeElder.display_name}</strong> ({activeElder.relation || 'Connected Elder'}). Verified medical reports, labs & medications are referenced.
+                </span>
+              </div>
+              <span className="text-[10px] font-bold tracking-wider uppercase text-secondary bg-secondary/10 px-2 py-0.5 rounded-full shrink-0">
+                Caregiver Mode
+              </span>
+            </div>
+          </BorderBeam>
         </div>
       )}
 

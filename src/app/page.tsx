@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { BorderBeam } from 'border-beam'
 import { Show } from '@/components/auth-context'
 import { Logo } from '@/components/logo'
 import { useLanguage } from '@/lib/i18n/language-context'
@@ -318,7 +319,8 @@ export default function Home() {
             <div className="relative w-full lg:col-span-5 mt-4 lg:mt-0 z-0">
               <div className="absolute inset-0 bg-gradient-to-tr from-secondary/20 via-electric-blue/20 to-primary/10 rounded-[2.5rem] transform rotate-2 blur-2xl opacity-60"></div>
               
-              <div className="relative w-full glass-panel-strong rounded-[2rem] p-5 sm:p-6 border border-white shadow-2xl space-y-4">
+              <BorderBeam size="md" colorVariant="ocean" strength={0.75} theme="light">
+                <div className="relative w-full glass-panel-strong rounded-[2rem] p-5 sm:p-6 border border-white shadow-2xl space-y-4">
                 
                 {/* Game-Style Pairing Beacon */}
                 <div className="flex items-center justify-between pb-3 border-b border-outline-variant/30">
@@ -401,6 +403,7 @@ export default function Home() {
                 </div>
 
               </div>
+              </BorderBeam>
             </div>
 
           </div>
@@ -434,15 +437,17 @@ export default function Home() {
               </div>
 
               {/* Step 2 */}
-              <div className="glass-panel organic-radius p-6 sm:p-7 flex flex-col items-start border-2 border-electric-blue/40 relative">
-                <div className="size-12 rounded-2xl bg-electric-blue/20 flex items-center justify-center mb-4 text-deep-navy font-bold text-lg">
-                  2
+              <BorderBeam size="md" colorVariant="ocean" strength={0.7} theme="light">
+                <div className="glass-panel organic-radius p-6 sm:p-7 flex flex-col items-start border-2 border-electric-blue/40 relative h-full">
+                  <div className="size-12 rounded-2xl bg-electric-blue/20 flex items-center justify-center mb-4 text-deep-navy font-bold text-lg">
+                    2
+                  </div>
+                  <h3 className="text-[18px] font-bold text-deep-navy mb-2">Share via WhatsApp or SMS</h3>
+                  <p className="text-[14px] text-on-surface-variant leading-relaxed">
+                    Send the code or 1-click link over WhatsApp, SMS, or tell your parent over the phone. The recipient enters the code in their dashboard.
+                  </p>
                 </div>
-                <h3 className="text-[18px] font-bold text-deep-navy mb-2">Share via WhatsApp or SMS</h3>
-                <p className="text-[14px] text-on-surface-variant leading-relaxed">
-                  Send the code or 1-click link over WhatsApp, SMS, or tell your parent over the phone. The recipient enters the code in their dashboard.
-                </p>
-              </div>
+              </BorderBeam>
 
               {/* Step 3 */}
               <div className="glass-panel organic-radius p-6 sm:p-7 flex flex-col items-start border border-white">

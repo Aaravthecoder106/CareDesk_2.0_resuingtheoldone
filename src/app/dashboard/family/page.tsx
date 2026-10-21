@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, Suspense } from 'react'
+import { BorderBeam } from 'border-beam'
 import { useUser } from '@/components/auth-context'
 import { Button } from '@/components/ui/button'
 import { useLanguage } from '@/lib/i18n/language-context'
@@ -301,121 +302,129 @@ function FamilyContent() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 mb-8">
         
         {/* Left: Enter Care Code to Pair (Game Join Room Style) */}
-        <div className="lg:col-span-6 glass-panel-strong rounded-2xl p-5 sm:p-6 border-2 border-electric-blue/40 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-electric-blue text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>
-                  sports_esports
-                </span>
-                <h3 className="text-[17px] font-bold text-deep-navy">Join Care Circle</h3>
-              </div>
-              <span className="text-[11px] font-bold tracking-wider uppercase text-secondary bg-secondary/10 px-2 py-0.5 rounded-full">
-                Instant Pairing
-              </span>
-            </div>
-            <p className="text-[13px] text-on-surface-variant mb-4 leading-relaxed">
-              Have a Care Code from your loved one or elder parent? Enter it below to link accounts in 10 seconds:
-            </p>
+        <div className="lg:col-span-6 h-full">
+          <BorderBeam size="md" colorVariant="ocean" strength={0.7} theme="light">
+            <div className="glass-panel-strong rounded-2xl p-5 sm:p-6 border-2 border-electric-blue/40 flex flex-col justify-between h-full">
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-electric-blue text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>
+                      sports_esports
+                    </span>
+                    <h3 className="text-[17px] font-bold text-deep-navy">Join Care Circle</h3>
+                  </div>
+                  <span className="text-[11px] font-bold tracking-wider uppercase text-secondary bg-secondary/10 px-2 py-0.5 rounded-full">
+                    Instant Pairing
+                  </span>
+                </div>
+                <p className="text-[13px] text-on-surface-variant mb-4 leading-relaxed">
+                  Have a Care Code from your loved one or elder parent? Enter it below to link accounts in 10 seconds:
+                </p>
 
-            <div className="space-y-3">
-              <div className="relative">
-                <input
-                  type="text"
-                  value={acceptCode}
-                  onChange={(e) => setAcceptCode(e.target.value.toUpperCase())}
-                  onKeyDown={(e) => e.key === 'Enter' && handleAcceptCode()}
-                  placeholder="e.g. CARE-782"
-                  className="w-full text-center tracking-[0.2em] font-mono font-bold text-[18px] sm:text-[20px] rounded-xl bg-white/80 border-2 border-outline-variant/60 focus:border-secondary px-4 py-3 text-deep-navy outline-none uppercase shadow-inner"
-                />
+                <div className="space-y-3">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={acceptCode}
+                      onChange={(e) => setAcceptCode(e.target.value.toUpperCase())}
+                      onKeyDown={(e) => e.key === 'Enter' && handleAcceptCode()}
+                      placeholder="e.g. CARE-782"
+                      className="w-full text-center tracking-[0.2em] font-mono font-bold text-[18px] sm:text-[20px] rounded-xl bg-white/80 border-2 border-outline-variant/60 focus:border-secondary px-4 py-3 text-deep-navy outline-none uppercase shadow-inner"
+                    />
+                  </div>
+                  <Button
+                    onClick={handleAcceptCode}
+                    disabled={accepting || !acceptCode.trim()}
+                    className="w-full btn-primary-gradient py-3 text-[14px] font-bold flex items-center justify-center gap-2"
+                  >
+                    {accepting ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
+                    Connect & Pair Now
+                  </Button>
+                </div>
               </div>
-              <Button
-                onClick={handleAcceptCode}
-                disabled={accepting || !acceptCode.trim()}
-                className="w-full btn-primary-gradient py-3 text-[14px] font-bold flex items-center justify-center gap-2"
-              >
-                {accepting ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
-                Connect & Pair Now
-              </Button>
+              <p className="text-[11px] text-on-surface-variant/70 text-center mt-3">
+                Pairing grants shared access to lab results, vitals trends, and caregiver AI health consultation.
+              </p>
             </div>
-          </div>
-          <p className="text-[11px] text-on-surface-variant/70 text-center mt-3">
-            Pairing grants shared access to lab results, vitals trends, and caregiver AI health consultation.
-          </p>
+          </BorderBeam>
         </div>
 
         {/* Right: Active / Generated Care Code Display */}
-        <div className="lg:col-span-6 glass-panel rounded-2xl p-5 sm:p-6 border border-white flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Ticket className="size-5 text-secondary" />
-                <h3 className="text-[17px] font-bold text-deep-navy">Your Instant Care Code</h3>
-              </div>
-              <span className="text-[11px] font-bold tracking-wider uppercase text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">
-                Ready to Share
-              </span>
-            </div>
-            <p className="text-[13px] text-on-surface-variant mb-4 leading-relaxed">
-              Share this code with your elder parent, sibling, or family caregiver so they can join your care circle:
-            </p>
-
-            {activeCareCode || invites[0]?.token ? (
-              <div className="space-y-3">
-                <div className="bg-surface-container rounded-2xl p-4 flex items-center justify-between border border-secondary/20 shadow-sm">
-                  <div>
-                    <span className="text-[11px] text-on-surface-variant font-medium block">Active Room Code</span>
-                    <span className="text-[22px] sm:text-[24px] font-mono font-extrabold tracking-wider text-deep-navy">
-                      {activeCareCode || invites[0]?.token}
-                    </span>
+        <div className="lg:col-span-6 h-full">
+          <BorderBeam size="md" colorVariant="ocean" strength={0.7} theme="light">
+            <div className="glass-panel rounded-2xl p-5 sm:p-6 border border-white flex flex-col justify-between h-full">
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Ticket className="size-5 text-secondary" />
+                    <h3 className="text-[17px] font-bold text-deep-navy">Your Instant Care Code</h3>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleCopyCode(activeCareCode || invites[0]?.token, 'main')}
-                    className="border-outline-variant/60 font-semibold"
-                  >
-                    <Copy className="mr-1.5 size-3.5" />
-                    {copiedId === 'main' ? 'Copied!' : 'Copy Code'}
-                  </Button>
+                  <span className="text-[11px] font-bold tracking-wider uppercase text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">
+                    Ready to Share
+                  </span>
                 </div>
+                <p className="text-[13px] text-on-surface-variant mb-4 leading-relaxed">
+                  Share this code with your elder parent, sibling, or family caregiver so they can join your care circle:
+                </p>
 
-                <div className="grid grid-cols-2 gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleShareWhatsApp(activeCareCode || invites[0]?.token)}
-                    className="border-green-500/30 text-green-700 hover:bg-green-50/60 font-semibold text-[13px]"
-                  >
-                    <MessageCircle className="mr-1.5 size-3.5" />
-                    WhatsApp
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleShareSMS(activeCareCode || invites[0]?.token)}
-                    className="border-blue-500/30 text-blue-700 hover:bg-blue-50/60 font-semibold text-[13px]"
-                  >
-                    <Share2 className="mr-1.5 size-3.5" />
-                    SMS
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-6 text-center bg-surface-container-low/50 rounded-2xl border border-dashed border-outline-variant/60">
-                <Ticket className="size-8 text-on-surface-variant/40 mb-2" />
-                <p className="text-[13px] text-on-surface-variant mb-3">No active Care Code generated yet</p>
-                <Button size="sm" onClick={handleGenerateQuickCareCode} disabled={inviting} className="btn-primary-gradient">
-                  Generate Care Code in 1 Click
-                </Button>
-              </div>
-            )}
-          </div>
+                {activeCareCode || invites[0]?.token ? (
+                  <div className="space-y-3">
+                    <div className="bg-surface-container rounded-2xl p-4 flex items-center justify-between border border-secondary/20 shadow-sm">
+                      <div>
+                        <span className="text-[11px] text-on-surface-variant font-medium block">Active Room Code</span>
+                        <span className="text-[22px] sm:text-[24px] font-mono font-extrabold tracking-wider text-deep-navy">
+                          {activeCareCode || invites[0]?.token}
+                        </span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleCopyCode(activeCareCode || invites[0]?.token, 'main')}
+                        className="border-outline-variant/60 font-semibold"
+                      >
+                        <Copy className="mr-1.5 size-3.5" />
+                        {copiedId === 'main' ? 'Copied!' : 'Copy Code'}
+                      </Button>
+                    </div>
 
-          <div className="mt-3 flex items-center gap-1.5 text-[11px] text-on-surface-variant/70">
-            <span className="size-1.5 rounded-full bg-emerald-500 inline-block" />
-            <span>Codes are reusable for your immediate family care circle.</span>
-          </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleShareWhatsApp(activeCareCode || invites[0]?.token)}
+                        className="border-green-500/30 text-green-700 hover:bg-green-50/60 font-semibold text-[13px]"
+                      >
+                        <MessageCircle className="mr-1.5 size-3.5" />
+                        WhatsApp
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleShareSMS(activeCareCode || invites[0]?.token)}
+                        className="border-blue-500/30 text-blue-700 hover:bg-blue-50/60 font-semibold text-[13px]"
+                      >
+                        <Share2 className="mr-1.5 size-3.5" />
+                        SMS
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-6 text-center bg-surface-container-low/50 rounded-2xl border border-dashed border-outline-variant/60">
+                    <Ticket className="size-8 text-on-surface-variant/40 mb-2" />
+                    <p className="text-[13px] text-on-surface-variant mb-3">No active Care Code generated yet</p>
+                    <Button size="sm" onClick={handleGenerateQuickCareCode} disabled={inviting} className="btn-primary-gradient">
+                      Generate Care Code in 1 Click
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-3 flex items-center gap-1.5 text-[11px] text-on-surface-variant/70">
+                <span className="size-1.5 rounded-full bg-emerald-500 inline-block" />
+                <span>Codes are reusable for your immediate family care circle.</span>
+              </div>
+            </div>
+          </BorderBeam>
         </div>
 
       </div>
