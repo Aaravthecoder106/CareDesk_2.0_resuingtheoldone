@@ -1,9 +1,9 @@
 import 'server-only'
 import { createClient } from '@/lib/supabase/server'
-import { getUserSubscription } from '@/lib/data/subscriptions'
+import { ensureCurrentUserProvisioned } from '@/lib/data/users'
 import type { Tables } from '@/lib/supabase/types'
 
-/** Free Explorer plan: messages per day and history retention. */
+/** Free Explorer plan: messages per day and history retention constant. */
 export const FREE_CHAT_DAILY_LIMIT = 5
 export const FREE_CHAT_HISTORY_DAYS = 7
 
@@ -12,23 +12,27 @@ export async function getChatHistory(limit = 50): Promise<Tables<'chat_messages'
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return []
 
-  // Free tier only retains 7 days of history (advertised plan limit).
-  let query = supabase
+  // Ensure user is provisioned in public.users/patients and legacy accounts migrated
+  await ensureCurrentUserProvisioned()
+
+  // Retrieve the latest messages for the current user up to `limit`
+  const { data, error } = await supabase
     .from('chat_messages')
     .select('*')
     .eq('user_id', user.id)
-    .order('created_at', { ascending: true })
+    .order('created_at', { ascending: false })
     .limit(limit)
 
-  const tier = await getUserSubscription(user.id)
-  if (tier === 'free') {
-    const cutoff = new Date(Date.now() - FREE_CHAT_HISTORY_DAYS * 24 * 60 * 60 * 1000)
-    query = query.gte('created_at', cutoff.toISOString())
-  }
-
-  const { data, error } = await query
   if (error) throw new Error(`getChatHistory: ${error.message}`)
-  return data || []
+
+  // Sort ascending chronologically; if timestamps match to the microsecond, place 'user' before 'assistant'
+  return (data || []).sort((a, b) => {
+    const diff = new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    if (diff !== 0) return diff
+    if (a.role === 'user' && b.role === 'assistant') return -1
+    if (a.role === 'assistant' && b.role === 'user') return 1
+    return 0
+  })
 }
 
 /**

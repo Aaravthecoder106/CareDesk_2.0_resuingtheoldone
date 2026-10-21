@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminSupabaseClient } from '@/lib/supabase/admin'
 import { logger } from '@/lib/logger'
 import { logAudit } from '@/lib/data/audit'
+import { ensureCurrentUserProvisioned } from '@/lib/data/users'
 
 /**
  * Non-streaming chat (used for image attachments and fallback).
@@ -17,6 +18,8 @@ export async function chatWithAI(
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { ok: false, error: 'Not authenticated' }
+
+    await ensureCurrentUserProvisioned()
 
     const context = await buildChatContext(user.id)
 
@@ -147,6 +150,8 @@ export async function chatWithAIStream(
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { ok: false, error: 'Not authenticated' }
+
+    await ensureCurrentUserProvisioned()
 
     const userId = user.id
     const context = await buildChatContext(userId)

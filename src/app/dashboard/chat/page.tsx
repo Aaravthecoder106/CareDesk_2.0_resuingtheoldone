@@ -34,12 +34,17 @@ export default function ChatPage() {
   async function fetchHistory() {
     try {
       const res = await fetch('/api/chat/history')
-      const data = await res.json()
-      setMessages(data.messages || [])
-    } catch {
-      console.error('Failed to fetch history')
+      if (res.ok) {
+        const data = await res.json()
+        setMessages(data.messages || [])
+      } else {
+        console.error('Failed to fetch history, status:', res.status)
+      }
+    } catch (err) {
+      console.error('Failed to fetch history:', err)
+    } finally {
+      setHistoryLoading(false)
     }
-    setHistoryLoading(false)
   }
 
   function handlePickImage(e: React.ChangeEvent<HTMLInputElement>) {
