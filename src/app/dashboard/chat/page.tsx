@@ -191,7 +191,7 @@ export default function ChatPage() {
             </div>
           ) : messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12">
-              <AiOrb size="lg" mode="chat" showLabel={false} className="mb-4" />
+              <AiOrb size={64} mode="chat" showLabel={false} className="mb-4" />
               <h3 className="mt-2 text-[16px] font-semibold text-deep-navy">{t('chat.empty.title')}</h3>
               <p className="mt-1 text-[14px] text-on-surface-variant text-center max-w-sm">
                 {t('chat.empty.desc')}
@@ -208,7 +208,7 @@ export default function ChatPage() {
                     msg.role === 'user'
                       ? 'bg-primary text-white'
                       : !msg.content && loading && msg.id === messages[messages.length - 1]?.id
-                      ? 'glass-panel-strong border border-secondary/30 bg-surface-container/70 shadow-lg'
+                      ? 'bg-transparent border-none p-0 shadow-none'
                       : 'glass-panel text-on-surface'
                   }`}
                 >
@@ -217,14 +217,14 @@ export default function ChatPage() {
                       <Markdown content={msg.content} />
                       {msg.role === 'assistant' && loading && msg.id === messages[messages.length - 1]?.id && (
                         <div className="flex items-center gap-2 pt-2 mt-2 border-t border-outline-variant/25 text-[12px] text-secondary font-medium">
-                          <AiOrb size="sm" showLabel={false} />
+                          <AiOrb size={20} state="working" showLabel={false} theme="light" />
                           <span className="animate-pulse">Generating clinical response...</span>
                         </div>
                       )}
                     </div>
                   ) : msg.role === 'assistant' && loading && msg.id === messages[messages.length - 1]?.id ? (
-                    <div className="py-2.5 px-2 flex flex-col items-center">
-                      <AiOrb mode={activeMode} size="md" />
+                    <div className="py-1">
+                      <AiOrb mode={activeMode} size={20} />
                     </div>
                   ) : null}
                 </div>
