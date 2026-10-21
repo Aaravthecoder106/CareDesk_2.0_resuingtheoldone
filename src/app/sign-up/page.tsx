@@ -5,13 +5,17 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Logo } from '@/components/logo'
 import { createBrowserSupabaseClient } from '@/lib/supabase/client'
-import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { Loader2, AlertCircle, CheckCircle2, Shield, HeartHandshake, User } from 'lucide-react'
 
 function SignUpContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectUrl = searchParams.get('redirect') || '/dashboard'
+  const roleParam = searchParams.get('role')
 
+  const [role, setRole] = useState<'caregiver' | 'patient'>(
+    roleParam === 'patient' ? 'patient' : 'caregiver'
+  )
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
@@ -42,6 +46,8 @@ function SignUpContent() {
             first_name: firstName.trim(),
             last_name: lastName.trim(),
             full_name: `${firstName.trim()} ${lastName.trim()}`.trim(),
+            role: role,
+            elder_care_role: role,
           },
         },
       })
@@ -78,7 +84,7 @@ function SignUpContent() {
     try {
       const supabase = createBrowserSupabaseClient()
       const origin = window.location.origin
-      const callbackUrl = `${origin}/api/auth/callback?next=${encodeURIComponent(redirectUrl)}`
+      const callbackUrl = `${origin}/api/auth/callback?next=${encodeURIComponent(redirectUrl)}&role=${role}`
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -102,8 +108,12 @@ function SignUpContent() {
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <Logo size="md" className="justify-center" />
-          <h1 className="mt-4 text-2xl font-bold tracking-tight text-on-surface">Create your account</h1>
-          <p className="mt-1 text-[14px] text-on-surface-variant">Start managing your health insights with CareDesk</p>
+          <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary/10 border border-secondary/20">
+            <span className="material-symbols-outlined text-secondary text-xs" style={{ fontVariationSettings: "'FILL' 1" }}>vital_signs</span>
+            <span className="text-[11px] font-bold tracking-wider uppercase text-secondary">Elder Care Platform</span>
+          </div>
+          <h1 className="mt-2 text-2xl font-bold tracking-tight text-deep-navy">Join CareDesk ElderCare</h1>
+          <p className="mt-1 text-[14px] text-on-surface-variant">Connecting seniors and family caregivers with real-time health intelligence</p>
         </div>
 
         <div className="rounded-2xl border border-outline-variant/30 bg-surface-container-lowest p-8 shadow-sm">
@@ -131,6 +141,50 @@ function SignUpContent() {
                   <span>{errorMessage}</span>
                 </div>
               )}
+
+              {/* Role Selection */}
+              <div className="mb-6">
+                <label className="block text-[13px] font-semibold text-deep-navy mb-2">
+                  I am signing up as:
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setRole('caregiver')}
+                    className={`flex flex-col items-center text-center p-3.5 rounded-xl border-2 transition-all ${
+                      role === 'caregiver'
+                        ? 'border-secondary bg-secondary/10 shadow-sm ring-1 ring-secondary/30'
+                        : 'border-outline-variant/30 hover:border-outline-variant/60 bg-surface'
+                    }`}
+                  >
+                    <div className="w-10 h-10 rounded-full bg-secondary/15 flex items-center justify-center mb-2">
+                      <Shield className="size-5 text-secondary" />
+                    </div>
+                    <span className="text-[13px] font-bold text-deep-navy">Family Caregiver</span>
+                    <span className="text-[11px] text-on-surface-variant leading-tight mt-0.5">
+                      Caring for elderly parents or family
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setRole('patient')}
+                    className={`flex flex-col items-center text-center p-3.5 rounded-xl border-2 transition-all ${
+                      role === 'patient'
+                        ? 'border-secondary bg-secondary/10 shadow-sm ring-1 ring-secondary/30'
+                        : 'border-outline-variant/30 hover:border-outline-variant/60 bg-surface'
+                    }`}
+                  >
+                    <div className="w-10 h-10 rounded-full bg-electric-blue/20 flex items-center justify-center mb-2">
+                      <User className="size-5 text-deep-navy" />
+                    </div>
+                    <span className="text-[13px] font-bold text-deep-navy">Senior / Patient</span>
+                    <span className="text-[11px] text-on-surface-variant leading-tight mt-0.5">
+                      Managing my own health & vitals
+                    </span>
+                  </button>
+                </div>
+              </div>
 
               {/* Google OAuth Button */}
               <button

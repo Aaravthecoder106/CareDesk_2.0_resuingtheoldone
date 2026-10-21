@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, Suspense } from 'react'
 import { Button } from '@/components/ui/button'
 import { useLanguage } from '@/lib/i18n/language-context'
-import { Send, Trash2, Loader2, ImagePlus, X } from 'lucide-react'
+import { Send, Trash2, Loader2, ImagePlus, X, Users, Sparkles, Shield, User } from 'lucide-react'
 import { Markdown } from '@/components/markdown'
 import { AiOrb } from '@/components/ai-orb'
+import { useSearchParams } from 'next/navigation'
 
 interface Message {
   id: string
@@ -14,24 +15,60 @@ interface Message {
   created_at: string
 }
 
-export default function ChatPage() {
+interface FamilyMember {
+  id: string
+  owner_id: string
+  member_id: string
+  relation: string | null
+  status: string
+  display_name?: string
+  connected_user_id?: string
+}
+
+function ChatContent() {
   const { t } = useLanguage()
+  const searchParams = useSearchParams()
+  const patientParam = searchParams.get('patient') || 'me'
+
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [activeMode, setActiveMode] = useState<'chat' | 'image'>('chat')
   const [historyLoading, setHistoryLoading] = useState(true)
   const [image, setImage] = useState<{ data: string; mimeType: string; preview: string } | null>(null)
+  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([])
+  const [selectedPatientId, setSelectedPatientId] = useState<string>(patientParam)
+  
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     fetchHistory()
+    fetchFamily()
   }, [])
+
+  useEffect(() => {
+    if (patientParam && patientParam !== selectedPatientId) {
+      setSelectedPatientId(patientParam)
+    }
+  }, [patientParam])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  async function fetchFamily() {
+    try {
+      const res = await fetch('/api/family/members')
+      if (res.ok) {
+        const data = await res.json()
+        const accepted = (data.members || []).filter((m: FamilyMember) => m.status === 'accepted')
+        setFamilyMembers(accepted)
+      }
+    } catch (e) {
+      console.error('Failed to load family members:', e)
+    }
+  }
 
   async function fetchHistory() {
     try {
@@ -66,10 +103,11 @@ export default function ChatPage() {
     reader.readAsDataURL(file)
   }
 
-  async function handleSend() {
-    if ((!input.trim() && !image) || loading) return
+  async function handleSend(customText?: string) {
+    const textToSend = customText !== undefined ? customText : input
+    if ((!textToSend.trim() && !image) || loading) return
 
-    const userText = input.trim() || 'Please analyze this image.'
+    const userText = textToSend.trim() || 'Please analyze this image.'
     const attached = image
 
     const userMsg: Message = {
@@ -94,12 +132,15 @@ export default function ChatPage() {
     setMessages(prev => [...prev, assistantMsg])
 
     try {
+      const targetPatient = selectedPatientId === 'me' ? undefined : selectedPatientId
+
       if (!attached) {
         const res = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             message: userText,
+            patientId: targetPatient,
             history: messages.slice(-10).map(m => ({ role: m.role, content: m.content })),
           }),
         })
@@ -132,6 +173,7 @@ export default function ChatPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             message: userText,
+            patientId: targetPatient,
             history: messages.slice(-10).map(m => ({ role: m.role, content: m.content })),
             image: { data: attached.data, mimeType: attached.mimeType },
           }),
@@ -164,14 +206,24 @@ export default function ChatPage() {
     setMessages([])
   }
 
+  const activeElder = familyMembers.find(m => m.connected_user_id === selectedPatientId || m.member_id === selectedPatientId || m.owner_id === selectedPatientId)
+  const elderFirstName = activeElder?.display_name?.split(' ')[0] || 'Loved One'
+
+  const elderSuggestedPrompts = [
+    `Summarize ${elderFirstName}'s latest lab tests and any flagged biomarkers.`,
+    `Are there any potential side effects or drug interactions with ${elderFirstName}'s current medications?`,
+    `What key questions should I ask her doctor at her next appointment?`,
+    `What dietary recommendations can help support ${elderFirstName}'s active conditions?`,
+  ]
+
   return (
-    <div className="flex h-full min-h-0 flex-col p-4 sm:p-5 md:p-8">
+    <div className="flex h-full min-h-0 flex-col p-4 sm:p-5 md:p-8 max-w-[1400px]">
       {/* Header */}
       <div className="mb-3 sm:mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-[24px] leading-[32px] font-semibold text-on-surface">{t('chat.title')}</h1>
-          <p className="mt-1 text-[14px] text-on-surface-variant">
-            {t('chat.subtitle')}
+          <h1 className="text-[22px] sm:text-[24px] font-bold text-deep-navy">CareDesk AI Health Consult</h1>
+          <p className="mt-1 text-[13px] sm:text-[14px] text-on-surface-variant">
+            Ask clinical and daily care questions grounded in verified medical records and lab reports.
           </p>
         </div>
         {messages.length > 0 && (
@@ -182,20 +234,97 @@ export default function ChatPage() {
         )}
       </div>
 
+      {/* Elder / Patient Switcher for Caregivers */}
+      {familyMembers.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 mb-3 bg-surface-container-low/70 p-2.5 rounded-2xl border border-outline-variant/30">
+          <span className="text-[12px] font-bold text-deep-navy flex items-center gap-1.5 pl-1">
+            <Users className="size-3.5 text-secondary" /> Context:
+          </span>
+          <button
+            onClick={() => setSelectedPatientId('me')}
+            className={`px-3 py-1.5 rounded-full text-[12px] font-semibold transition-all ${
+              selectedPatientId === 'me'
+                ? 'bg-primary text-white shadow-sm ring-1 ring-secondary/50'
+                : 'bg-white text-on-surface-variant hover:bg-white/80 border border-outline-variant/40'
+            }`}
+          >
+            👤 My Own Health
+          </button>
+          {familyMembers.map((m) => {
+            const memberTargetId = m.connected_user_id || m.member_id
+            const isSelected = selectedPatientId === memberTargetId
+            return (
+              <button
+                key={m.id}
+                onClick={() => setSelectedPatientId(memberTargetId)}
+                className={`px-3.5 py-1.5 rounded-full text-[12px] font-semibold transition-all flex items-center gap-1.5 ${
+                  isSelected
+                    ? 'bg-primary text-white shadow-sm ring-2 ring-secondary'
+                    : 'bg-white text-deep-navy hover:bg-white/80 border border-outline-variant/40'
+                }`}
+              >
+                <span>👵 {m.display_name}</span>
+                {m.relation && <span className="text-[10px] opacity-80 font-normal">({m.relation})</span>}
+              </button>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Active Context Banner */}
+      {activeElder && selectedPatientId !== 'me' && (
+        <div className="mb-3 glass-panel rounded-xl px-3.5 py-2 border border-secondary/30 bg-secondary/5 flex items-center justify-between animate-fadeIn">
+          <div className="flex items-center gap-2 text-[12px] text-deep-navy">
+            <Sparkles className="size-3.5 text-secondary shrink-0" />
+            <span>
+              Consulting AI regarding <strong>{activeElder.display_name}</strong> ({activeElder.relation || 'Connected Elder'}). Verified medical reports, labs & medications are referenced.
+            </span>
+          </div>
+          <span className="text-[10px] font-bold tracking-wider uppercase text-secondary bg-secondary/10 px-2 py-0.5 rounded-full shrink-0">
+            Caregiver Mode
+          </span>
+        </div>
+      )}
+
       {/* Chat Area */}
-      <div className="flex-1 overflow-hidden glass-panel organic-radius flex flex-col">
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-hidden glass-panel organic-radius flex flex-col border border-white/60 shadow-sm">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
           {historyLoading ? (
             <div className="flex flex-col items-center justify-center py-16 gap-3">
               <AiOrb mode="chat" size={20} state="searching" statusText="Loading conversation history...." />
             </div>
           ) : messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12">
+            <div className="flex flex-col items-center justify-center py-10 sm:py-14 text-center max-w-lg mx-auto">
               <AiOrb size={64} mode="chat" showLabel={false} className="mb-4" />
-              <h3 className="mt-2 text-[16px] font-semibold text-deep-navy">{t('chat.empty.title')}</h3>
-              <p className="mt-1 text-[14px] text-on-surface-variant text-center max-w-sm">
-                {t('chat.empty.desc')}
+              <h3 className="text-[17px] font-bold text-deep-navy">
+                {activeElder ? `Ask anything about ${activeElder.display_name}'s health` : t('chat.empty.title')}
+              </h3>
+              <p className="mt-1 text-[13px] text-on-surface-variant leading-relaxed mb-6">
+                {activeElder
+                  ? `AI has analyzed ${activeElder.display_name}'s blood tests, vitals, and medications to answer your caregiving questions.`
+                  : t('chat.empty.desc')}
               </p>
+
+              {/* Suggested Prompts */}
+              <div className="w-full space-y-2 text-left">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-secondary block pl-1">
+                  Suggested Questions:
+                </span>
+                {(activeElder ? elderSuggestedPrompts : [
+                  'Summarize my latest blood test and any flagged values.',
+                  'Explain my current medication routine and precautions.',
+                  'What questions should I ask my physician at my next visit?',
+                ]).map((prompt, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handleSend(prompt)}
+                    className="w-full text-left p-2.5 rounded-xl bg-white/70 hover:bg-white hover:border-secondary/40 border border-outline-variant/30 text-[12px] sm:text-[13px] text-deep-navy transition-all flex items-center justify-between group"
+                  >
+                    <span>{prompt}</span>
+                    <Sparkles className="size-3.5 text-secondary opacity-60 group-hover:opacity-100 shrink-0 ml-2" />
+                  </button>
+                ))}
+              </div>
             </div>
           ) : (
             messages.map((msg) => (
@@ -206,10 +335,10 @@ export default function ChatPage() {
                 <div
                   className={`max-w-[90%] sm:max-w-[80%] rounded-2xl px-3.5 sm:px-4 py-2.5 sm:py-3 text-[13px] sm:text-[14px] ${
                     msg.role === 'user'
-                      ? 'bg-primary text-white'
+                      ? 'bg-primary text-white shadow-sm'
                       : !msg.content && loading && msg.id === messages[messages.length - 1]?.id
                       ? 'bg-transparent border-none p-0 shadow-none'
-                      : 'glass-panel text-on-surface'
+                      : 'glass-panel text-on-surface border border-outline-variant/30'
                   }`}
                 >
                   {msg.content ? (
@@ -218,13 +347,13 @@ export default function ChatPage() {
                       {msg.role === 'assistant' && loading && msg.id === messages[messages.length - 1]?.id && (
                         <div className="flex items-center gap-2 pt-2 mt-2 border-t border-outline-variant/25 text-[12px] text-secondary font-medium">
                           <AiOrb size={20} state="working" showLabel={false} theme="light" />
-                          <span className="animate-pulse">Generating clinical response...</span>
+                          <span className="animate-pulse">Formulating clinical response...</span>
                         </div>
                       )}
                     </div>
                   ) : msg.role === 'assistant' && loading && msg.id === messages[messages.length - 1]?.id ? (
                     <div className="py-1">
-                      <AiOrb mode={activeMode} size={20} />
+                      <AiOrb mode={activeMode} size={20} statusText={activeElder ? `Analyzing ${elderFirstName}'s records....` : undefined} />
                     </div>
                   ) : null}
                 </div>
@@ -235,7 +364,7 @@ export default function ChatPage() {
         </div>
 
         {/* Input Area */}
-        <div className="border-t border-outline-variant/30 p-3 sm:p-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <div className="border-t border-outline-variant/30 p-3 sm:p-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-white/40">
           {image && (
             <div className="mb-2 flex items-center gap-2">
               <div className="relative">
@@ -278,23 +407,35 @@ export default function ChatPage() {
               onClick={() => fileInputRef.current?.click()}
               disabled={loading}
               title={t('chat.attachImage')}
-              className="border-outline-variant/50 hover:bg-surface-container"
+              className="border-outline-variant/50 hover:bg-surface-container shrink-0"
             >
               <ImagePlus className="size-4 text-on-surface-variant" />
             </Button>
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={t('chat.input.placeholder')}
-              className="flex-1 rounded-xl bg-white/50 border border-outline-variant/50 px-3 sm:px-4 py-2.5 text-[13px] sm:text-[14px] outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary transition-all min-w-0"
+              placeholder={activeElder ? `Ask anything about ${activeElder.display_name}'s health, labs, or meds...` : t('chat.input.placeholder')}
+              className="flex-1 rounded-xl bg-white/70 border border-outline-variant/50 px-3 sm:px-4 py-2.5 text-[13px] sm:text-[14px] outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary transition-all min-w-0"
               disabled={loading}
             />
-            <Button type="submit" size="icon" disabled={loading || (!input.trim() && !image)} className="btn-primary-gradient rounded-xl">
+            <Button type="submit" size="icon" disabled={loading || (!input.trim() && !image)} className="btn-primary-gradient rounded-xl shrink-0">
               <Send className="size-4" />
             </Button>
           </form>
         </div>
       </div>
     </div>
+  )
+}
+
+export default function ChatPage() {
+  return (
+    <Suspense fallback={
+      <div className="p-8 flex justify-center">
+        <AiOrb mode="chat" size={20} state="searching" statusText="Loading AI Consult...." />
+      </div>
+    }>
+      <ChatContent />
+    </Suspense>
   )
 }

@@ -86,6 +86,8 @@ export function useUser() {
           firstName: user.user_metadata?.first_name || null,
           lastName: user.user_metadata?.last_name || null,
           imageUrl: user.user_metadata?.avatar_url || null,
+          role: (user.user_metadata?.elder_care_role || user.user_metadata?.role || 'caregiver') as string,
+          user_metadata: user.user_metadata || {},
         }
       : null,
     isLoaded: !loading,
@@ -103,7 +105,11 @@ export function Show({
 }) {
   const { isSignedIn, loading } = useAuth()
 
-  if (loading) return null
+  if (loading) {
+    // Default to signed-out view during SSR / initial mount
+    if (when === 'signed-out') return <>{children}</>
+    return null
+  }
 
   if (when === 'signed-in' && isSignedIn) return <>{children}</>
   if (when === 'signed-out' && !isSignedIn) return <>{children}</>

@@ -10,6 +10,7 @@ import { z } from 'zod'
 // ── Chat ─────────────────────────────────────────────────────────────────
 export const chatMessageSchema = z.object({
   message: z.string().min(1, 'Message is required').max(4000, 'Message too long'),
+  patientId: z.string().uuid().optional(),
   history: z
     .array(
       z.object({
@@ -45,12 +46,13 @@ export const reportPreviewSchema = z.object({
 
 // ── Family ───────────────────────────────────────────────────────────────
 export const familyInviteSchema = z.object({
-  email: z.string().email('Invalid email address').max(255),
+  email: z.string().email('Invalid email address').max(255).optional().or(z.literal('')),
   relation: z.string().max(100).optional(),
+  role: z.enum(['caregiver', 'patient']).optional(),
 })
 
 export const familyAcceptSchema = z.object({
-  token: z.string().min(1, 'Token is required').max(512),
+  token: z.string().min(1, 'Code or token is required').max(512),
 })
 
 export const familyConfirmSchema = z.object({

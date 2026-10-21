@@ -26,11 +26,11 @@ export async function POST(req: NextRequest) {
       return apiError(parsed.error.issues[0]?.message || 'Invalid input', 400)
     }
 
-    const { message, history, image } = parsed.data
+    const { message, history, image, patientId } = parsed.data
 
     // Stream when there's no image (text-only messages)
     if (!image) {
-      const streamResult = await chatWithAIStream(message, history)
+      const streamResult = await chatWithAIStream(message, history, patientId)
 
       if ('error' in streamResult) {
         logger.error({
@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Non-streaming for image messages
-    const result = await chatWithAI(message, history, image)
+    const result = await chatWithAI(message, history, image, patientId)
 
     logger.info({
       route: '/api/chat',

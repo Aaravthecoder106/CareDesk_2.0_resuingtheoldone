@@ -1,10 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { Button } from '@/components/ui/button'
 import { useLanguage } from '@/lib/i18n/language-context'
-import { BarChart3, RefreshCw, Loader2, TrendingUp, Pill, AlertCircle, FileText } from 'lucide-react'
+import { BarChart3, RefreshCw, Loader2, TrendingUp, Pill, AlertCircle, FileText, MessageSquare, Sparkles } from 'lucide-react'
 import { AiOrb } from '@/components/ai-orb'
+import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import {
   BarChart,
   Bar,
@@ -37,17 +39,26 @@ interface FamilySnapshot {
 
 const COLORS = ['#0059bb', '#00E0FF', '#a9c7ff', '#002b5b']
 
-export default function AnalyticsPage() {
+function AnalyticsContent() {
   const { t } = useLanguage()
+  const searchParams = useSearchParams()
+  const viewParam = searchParams.get('view') || 'me'
+
   const [ownData, setOwnData] = useState<AnalyticsData | null>(null)
   const [family, setFamily] = useState<FamilySnapshot[]>([])
-  const [viewing, setViewing] = useState<string>('me')
+  const [viewing, setViewing] = useState<string>(viewParam)
   const [loading, setLoading] = useState(true)
   const [regenerating, setRegenerating] = useState(false)
 
   useEffect(() => {
     fetchAnalytics()
   }, [])
+
+  useEffect(() => {
+    if (viewParam && viewParam !== viewing) {
+      setViewing(viewParam)
+    }
+  }, [viewParam])
 
   async function fetchAnalytics() {
     setLoading(true)
@@ -109,13 +120,13 @@ export default function AnalyticsPage() {
   ]
 
   return (
-    <div className="p-4 sm:p-5 md:p-8">
+    <div className="p-4 sm:p-5 md:p-8 max-w-[1400px]">
       {/* Header */}
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-[24px] leading-[32px] font-semibold text-on-surface">{t('analytics.title')}</h1>
-          <p className="mt-1 text-[14px] text-on-surface-variant">
-            {t('analytics.subtitle')}
+          <h1 className="text-[22px] sm:text-[24px] font-bold text-deep-navy">Health Analytics & Biomarkers</h1>
+          <p className="mt-1 text-[13px] sm:text-[14px] text-on-surface-variant">
+            Interactive biomarker tracking, medication adherence, and health trends for you and connected elders.
           </p>
         </div>
         {viewing === 'me' && (
@@ -130,32 +141,56 @@ export default function AnalyticsPage() {
         )}
       </div>
 
-      {/* Family Tabs */}
+      {/* Family / Elder Switcher Tabs */}
       {family.length > 0 && (
-        <div className="mb-6 flex flex-wrap gap-2">
+        <div className="mb-6 flex flex-wrap gap-2 bg-surface-container-low/70 p-2 rounded-2xl border border-outline-variant/30">
           <button
             onClick={() => setViewing('me')}
-            className={`px-4 py-1.5 rounded-full text-[14px] font-medium transition-all ${
+            className={`px-4 py-1.5 rounded-full text-[13px] font-semibold transition-all ${
               viewing === 'me'
-                ? 'bg-primary text-white'
-                : 'glass-panel text-on-surface-variant hover:bg-white/60'
+                ? 'bg-primary text-white shadow-sm ring-1 ring-secondary/50'
+                : 'bg-white text-on-surface-variant hover:bg-white/80 border border-outline-variant/40'
             }`}
           >
-            {t('analytics.myAnalytics')}
+            👤 My Analytics
           </button>
           {family.map((f) => (
             <button
               key={f.user_id}
               onClick={() => setViewing(f.user_id)}
-              className={`px-4 py-1.5 rounded-full text-[14px] font-medium transition-all ${
+              className={`px-4 py-1.5 rounded-full text-[13px] font-semibold transition-all ${
                 viewing === f.user_id
-                  ? 'bg-primary text-white'
-                  : 'glass-panel text-on-surface-variant hover:bg-white/60'
+                  ? 'bg-primary text-white shadow-sm ring-2 ring-secondary'
+                  : 'bg-white text-deep-navy hover:bg-white/80 border border-outline-variant/40'
               }`}
             >
-              {f.name}
+              👵 {f.name} (Elder Stats)
             </button>
           ))}
+        </div>
+      )}
+
+      {/* Active Elder Banner if Caregiver is viewing elder */}
+      {viewing !== 'me' && viewingFamily && (
+        <div className="mb-6 glass-panel rounded-2xl p-4 border border-secondary/30 bg-secondary/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fadeIn">
+          <div className="flex items-center gap-2.5">
+            <span className="size-2.5 rounded-full bg-emerald-500 animate-pulse" />
+            <div>
+              <p className="text-[14px] font-bold text-deep-navy">
+                Viewing Medical Stats for {viewingFamily.name}
+              </p>
+              <p className="text-[12px] text-on-surface-variant">
+                Live biomarkers, active medications, and condition status from verified medical records.
+              </p>
+            </div>
+          </div>
+          <Link
+            href={`/dashboard/chat?patient=${viewingFamily.user_id}`}
+            className="btn-primary-gradient px-4 py-2 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 self-start sm:self-auto shrink-0"
+          >
+            <MessageSquare className="size-3.5" />
+            <span>Ask AI About {viewingFamily.name.split(' ')[0]}</span>
+          </Link>
         </div>
       )}
 
@@ -168,91 +203,61 @@ export default function AnalyticsPage() {
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="glass-panel rounded-2xl p-4 sm:p-5 space-y-3">
                 <div className="size-9 rounded-xl bg-surface-container-high/70 animate-pulse" />
-                <div className="h-4 w-24 bg-surface-container/70 rounded animate-pulse" />
-                <div className="h-7 w-16 bg-surface-container-high/80 rounded animate-pulse" />
+                <div className="space-y-1.5">
+                  <div className="h-3.5 w-20 bg-surface-container/70 rounded animate-pulse" />
+                  <div className="h-6 w-16 bg-surface-container-high/80 rounded animate-pulse" />
+                </div>
               </div>
             ))}
           </div>
-          <div className="glass-panel rounded-2xl p-6 h-64 flex items-center justify-center">
-            <div className="h-44 w-full bg-surface-container/60 rounded-xl animate-pulse" />
-          </div>
-        </div>
-      ) : !data ? (
-        <div className="glass-panel organic-radius flex flex-col items-center justify-center py-16">
-          <BarChart3 className="size-12 text-on-surface-variant/50" />
-          <h3 className="mt-4 text-[16px] font-semibold text-deep-navy">{t('analytics.empty.title')}</h3>
-          <p className="mt-1 text-[14px] text-on-surface-variant text-center max-w-sm">
-            {viewing === 'me'
-              ? t('analytics.empty.ownDesc')
-              : t('analytics.empty.familyDesc', { name: viewingFamily?.name || 'They' })}
-          </p>
         </div>
       ) : (
         <>
           {/* Stat Cards */}
-          <div className="mb-5 sm:mb-6 grid grid-cols-2 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
             {statCards.map((card) => (
-              <div key={card.label} className="glass-panel organic-radius p-4 sm:p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-[12px] font-bold tracking-wide uppercase text-on-surface-variant">{card.label}</span>
-                  <div className={`w-8 h-8 rounded-full ${card.bg} flex items-center justify-center`}>
-                    <card.icon className={`size-4 ${card.color}`} />
+              <div key={card.label} className="glass-panel rounded-2xl p-4 sm:p-5">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className={`size-8 sm:size-9 rounded-xl ${card.bg} flex items-center justify-center shrink-0`}>
+                    <card.icon className={`size-4 sm:size-5 ${card.color}`} />
+                  </div>
+                  <div>
+                    <span className="text-[11px] sm:text-[12px] font-medium text-on-surface-variant line-clamp-1">{card.label}</span>
+                    <span className="text-[18px] sm:text-[22px] font-bold text-deep-navy">{card.value}</span>
                   </div>
                 </div>
-                <div className="text-[20px] sm:text-[24px] font-bold text-deep-navy">{card.value}</div>
               </div>
             ))}
           </div>
 
           {/* AI Insights */}
-          {data.insights && data.insights.length > 0 && (              <div className="mb-5 sm:mb-6 glass-panel rounded-xl p-4 sm:p-5 border border-electric-blue/10 ai-glow">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="material-symbols-outlined text-secondary text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
-                <span className="text-[12px] font-bold tracking-[0.08em] uppercase text-secondary">{t('analytics.aiInsights')}</span>
-              </div>
-              <ul className="space-y-2">
+          {data?.insights && data.insights.length > 0 && (
+            <div className="mb-6 sm:mb-8 glass-panel rounded-xl p-4 sm:p-6 border border-electric-blue/15 ai-glow">
+              <h3 className="text-[15px] sm:text-[16px] font-semibold text-deep-navy mb-2 sm:mb-3 flex items-center gap-2">
+                <span className="material-symbols-outlined text-secondary text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+                {viewing !== 'me' && viewingFamily ? `${viewingFamily.name.split(' ')[0]}'s AI Clinical Insights` : t('analytics.aiInsights')}
+              </h3>
+              <ul className="space-y-1.5 sm:space-y-2">
                 {data.insights.map((insight, i) => (
-                  <li key={i} className="flex items-start gap-2 text-[14px] text-on-surface">
-                    <TrendingUp className="mt-0.5 size-4 shrink-0 text-secondary" />
-                    {insight}
+                  <li key={i} className="text-[13px] sm:text-[14px] text-on-surface flex items-start gap-2">
+                    <span className="text-secondary mt-0.5">•</span>
+                    <span>{insight}</span>
                   </li>
                 ))}
               </ul>
             </div>
           )}
 
-          {/* Charts */}
-          <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
-            {labChartData.length > 0 && (
-              <div className="glass-panel organic-radius p-4 sm:p-5">
-                <h3 className="text-[15px] sm:text-[16px] font-semibold text-deep-navy mb-3 sm:mb-4">{t('analytics.labTrends')}</h3>
-                <ResponsiveContainer width="100%" height={200}>
-                  <BarChart data={labChartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#c4c6d0" />
-                    <XAxis dataKey="name" fontSize={12} tick={{ fill: '#43474f' }} />
-                    <YAxis fontSize={12} tick={{ fill: '#43474f' }} />
-                    <Tooltip />
-                    <Bar dataKey="value" fill="#0059bb" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-
+          {/* Charts Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             {conditionData.length > 0 && (
               <div className="glass-panel organic-radius p-4 sm:p-5">
-                <h3 className="text-[15px] sm:text-[16px] font-semibold text-deep-navy mb-3 sm:mb-4">{t('analytics.conditions')}</h3>
+                <h3 className="text-[15px] sm:text-[16px] font-semibold text-deep-navy mb-3 sm:mb-4">{t('analytics.conditionsBreakdown')}</h3>
                 <ResponsiveContainer width="100%" height={200}>
                   <PieChart>
-                    <Pie
-                      data={conditionData}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      dataKey="value"
-                      label={({ name, value }) => `${name}: ${value}`}
-                    >
+                    <Pie data={conditionData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label>
                       {conditionData.map((_, index) => (
-                        <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
                     <Tooltip />
@@ -294,5 +299,17 @@ export default function AnalyticsPage() {
         </>
       )}
     </div>
+  )
+}
+
+export default function AnalyticsPage() {
+  return (
+    <Suspense fallback={
+      <div className="p-8 flex justify-center">
+        <AiOrb mode="report" size={20} state="solving" statusText="Loading analytics...." />
+      </div>
+    }>
+      <AnalyticsContent />
+    </Suspense>
   )
 }

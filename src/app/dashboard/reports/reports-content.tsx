@@ -1,10 +1,12 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, Suspense } from 'react'
 import { Button } from '@/components/ui/button'
 import { useLanguage } from '@/lib/i18n/language-context'
-import { FolderOpen, Upload, Trash2, RefreshCw, FileText, Loader2, Lock, Eye } from 'lucide-react'
+import { FolderOpen, Upload, Trash2, RefreshCw, FileText, Loader2, Lock, Eye, Users, MessageSquare, Sparkles } from 'lucide-react'
 import { AiOrb } from '@/components/ai-orb'
+import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 
 interface Report {
   id: string
@@ -16,6 +18,16 @@ interface Report {
   created_at: string
 }
 
+interface FamilyMember {
+  id: string
+  owner_id: string
+  member_id: string
+  relation: string | null
+  status: string
+  display_name?: string
+  connected_user_id?: string
+}
+
 const STATUS_STYLES: Record<string, string> = {
   pending: 'text-amber-600',
   processing: 'text-blue-600',
@@ -23,19 +35,21 @@ const STATUS_STYLES: Record<string, string> = {
   failed: 'text-destructive',
 }
 
-
-
-/** Files over this size use presigned URL upload to bypass Vercel body limit. */
 const PRESIGN_THRESHOLD = 3 * 1024 * 1024 // 3 MB
 
-export default function ReportsPage() {
+function ReportsContent() {
   const { t } = useLanguage()
+  const searchParams = useSearchParams()
+  const initialPatient = searchParams.get('patientId') || 'me'
+
   const [locked, setLocked] = useState<boolean | null>(null)
   const [gatePassword, setGatePassword] = useState('')
   const [gateError, setGateError] = useState('')
   const [unlocking, setUnlocking] = useState(false)
 
   const [reports, setReports] = useState<Report[]>([])
+  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([])
+  const [selectedPatientId, setSelectedPatientId] = useState<string>(initialPatient)
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState('')
@@ -58,12 +72,33 @@ export default function ReportsPage() {
         setLocked(false)
       }
     })()
+    fetchFamily()
   }, [])
 
-  const fetchReports = useCallback(async (showSpinner = true) => {
+  useEffect(() => {
+    if (initialPatient && initialPatient !== selectedPatientId) {
+      setSelectedPatientId(initialPatient)
+    }
+  }, [initialPatient])
+
+  async function fetchFamily() {
+    try {
+      const res = await fetch('/api/family/members')
+      if (res.ok) {
+        const data = await res.json()
+        const accepted = (data.members || []).filter((m: FamilyMember) => m.status === 'accepted')
+        setFamilyMembers(accepted)
+      }
+    } catch (e) {
+      console.error('Failed to load family:', e)
+    }
+  }
+
+  const fetchReports = useCallback(async (showSpinner = true, targetId = selectedPatientId) => {
     if (showSpinner) setLoading(true)
     try {
-      const res = await fetch('/api/reports/list')
+      const url = targetId === 'me' ? '/api/reports/list' : `/api/reports/list?patientId=${targetId}`
+      const res = await fetch(url)
       const data = await res.json()
       if (data.error) setError(data.error)
       setReports(data.reports || [])
@@ -71,18 +106,18 @@ export default function ReportsPage() {
       setError(t('reports.errors.fetchFailed'))
     }
     if (showSpinner) setLoading(false)
-  }, [t])
+  }, [t, selectedPatientId])
 
   useEffect(() => {
-    if (locked === false) fetchReports()
-  }, [locked, fetchReports])
+    if (locked === false) fetchReports(true, selectedPatientId)
+  }, [locked, selectedPatientId, fetchReports])
 
   useEffect(() => {
     const busy = reports.some((r) => r.status === 'pending' || r.status === 'processing')
     if (!busy) return
-    const t2 = setInterval(() => fetchReports(false), 4000)
+    const t2 = setInterval(() => fetchReports(false, selectedPatientId), 4000)
     return () => clearInterval(t2)
-  }, [reports, fetchReports])
+  }, [reports, selectedPatientId, fetchReports])
 
   async function handleUnlock() {
     setUnlocking(true)
@@ -187,7 +222,7 @@ export default function ReportsPage() {
       })
       const data = await res.json()
       if (data.error || data.ok === false) setError(data.error || t('reports.errors.analysisFailed'))
-      fetchReports()
+      fetchReports(false, selectedPatientId)
     } catch {
       setError(t('reports.errors.analysisFailed'))
     }
@@ -221,14 +256,14 @@ export default function ReportsPage() {
 
   if (locked) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center p-6">
-        <div className="glass-panel organic-radius w-full max-w-sm p-8">
-          <div className="flex flex-col items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-              <Lock className="size-8 text-primary/70" />
+      <div className="p-4 sm:p-5 md:p-8">
+        <div className="max-w-md mx-auto mt-12 sm:mt-16 glass-panel organic-radius p-6 sm:p-8">
+          <div className="flex flex-col items-center text-center space-y-4">
+            <div className="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center">
+              <Lock className="size-6 text-secondary" />
             </div>
-            <div className="text-center">
-              <h2 className="text-[18px] font-semibold text-deep-navy">{t('reports.locked.title')}</h2>
+            <div>
+              <h2 className="text-[20px] font-semibold text-deep-navy">{t('reports.locked.title')}</h2>
               <p className="mt-1 text-[14px] text-on-surface-variant">
                 {t('reports.locked.desc')}
               </p>
@@ -253,14 +288,16 @@ export default function ReportsPage() {
     )
   }
 
+  const activeElder = familyMembers.find(m => m.connected_user_id === selectedPatientId || m.member_id === selectedPatientId)
+
   return (
-    <div className="p-5 md:p-8">
+    <div className="p-4 sm:p-5 md:p-8 max-w-[1400px]">
       {/* Header */}
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-[24px] leading-[32px] font-semibold text-on-surface">{t('reports.title')}</h1>
-          <p className="mt-1 text-[14px] text-on-surface-variant">
-            {t('reports.subtitle')}
+          <h1 className="text-[22px] sm:text-[24px] font-bold text-deep-navy">Medical Report Library</h1>
+          <p className="mt-1 text-[13px] sm:text-[14px] text-on-surface-variant">
+            Upload, analyze, and review medical documents, blood panels, and clinical histories.
           </p>
         </div>
         <div className="shrink-0">
@@ -277,10 +314,68 @@ export default function ReportsPage() {
             ) : (
               <Upload className="mr-2 size-4" />
             )}
-            {uploading && uploadProgress ? uploadProgress : t('reports.upload')}
+            {uploading && uploadProgress ? uploadProgress : 'Upload Document'}
           </Button>
         </div>
       </div>
+
+      {/* Elder / Patient Switcher Tabs */}
+      {familyMembers.length > 0 && (
+        <div className="mb-6 flex flex-wrap gap-2 bg-surface-container-low/70 p-2 rounded-2xl border border-outline-variant/30">
+          <button
+            onClick={() => setSelectedPatientId('me')}
+            className={`px-4 py-1.5 rounded-full text-[13px] font-semibold transition-all ${
+              selectedPatientId === 'me'
+                ? 'bg-primary text-white shadow-sm ring-1 ring-secondary/50'
+                : 'bg-white text-on-surface-variant hover:bg-white/80 border border-outline-variant/40'
+            }`}
+          >
+            👤 My Reports
+          </button>
+          {familyMembers.map((m) => {
+            const memberTargetId = m.connected_user_id || m.member_id
+            const isSelected = selectedPatientId === memberTargetId
+            return (
+              <button
+                key={m.id}
+                onClick={() => setSelectedPatientId(memberTargetId)}
+                className={`px-4 py-1.5 rounded-full text-[13px] font-semibold transition-all flex items-center gap-1.5 ${
+                  isSelected
+                    ? 'bg-primary text-white shadow-sm ring-2 ring-secondary'
+                    : 'bg-white text-deep-navy hover:bg-white/80 border border-outline-variant/40'
+                }`}
+              >
+                <span>👵 {m.display_name}</span>
+                {m.relation && <span className="text-[10px] opacity-80 font-normal">({m.relation})</span>}
+              </button>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Active Elder Banner */}
+      {activeElder && selectedPatientId !== 'me' && (
+        <div className="mb-6 glass-panel rounded-2xl p-4 border border-secondary/30 bg-secondary/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fadeIn">
+          <div className="flex items-center gap-2.5">
+            <span className="size-2.5 rounded-full bg-emerald-500 animate-pulse" />
+            <div>
+              <p className="text-[14px] font-bold text-deep-navy">
+                Viewing Medical Reports for {activeElder.display_name} ({activeElder.relation || 'Connected Elder'})
+              </p>
+              <p className="text-[12px] text-on-surface-variant">
+                Full access enabled via Care Circle. All reports are verified and synchronized in real-time.
+              </p>
+            </div>
+          </div>
+          <Link
+            href={`/dashboard/chat?patient=${activeElder.connected_user_id || activeElder.member_id}`}
+            className="btn-primary-gradient px-4 py-2 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 self-start sm:self-auto shrink-0"
+          >
+            <MessageSquare className="size-3.5" />
+            <span>Ask AI About {activeElder.display_name?.split(' ')[0]}</span>
+          </Link>
+        </div>
+      )}
 
       {/* Uploading & AI Processing State with Thinking Orb */}
       {uploading && (
@@ -288,17 +383,6 @@ export default function ReportsPage() {
           <AiOrb mode="report" size={20} statusText={uploadProgress || undefined} />
         </div>
       )}
-
-      {/* AI Summary Overview */}
-      <div className="mb-6 glass-panel rounded-xl p-4 border border-electric-blue/10 ai-glow">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="material-symbols-outlined text-secondary text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
-          <span className="text-[12px] font-bold tracking-[0.08em] uppercase text-secondary">AI Health Overview</span>
-        </div>
-        <p className="text-[16px] text-on-surface">
-          Based on your recent reports, AI analysis provides personalized insights for your health journey.
-        </p>
-      </div>
 
       {/* Error */}
       {error && (
@@ -329,11 +413,15 @@ export default function ReportsPage() {
           </div>
         </div>
       ) : reports.length === 0 ? (
-        <div className="glass-panel organic-radius flex flex-col items-center justify-center py-16">
+        <div className="glass-panel organic-radius flex flex-col items-center justify-center py-16 border border-white">
           <AiOrb mode="report" size={64} showLabel={false} className="mb-3" />
-          <h3 className="mt-2 text-[16px] font-semibold text-deep-navy">{t('reports.empty.title')}</h3>
-          <p className="mt-1 text-[14px] text-on-surface-variant">
-            {t('reports.empty.desc')}
+          <h3 className="mt-2 text-[16px] font-bold text-deep-navy">
+            {activeElder ? `No reports uploaded for ${activeElder.display_name} yet` : t('reports.empty.title')}
+          </h3>
+          <p className="mt-1 text-[14px] text-on-surface-variant text-center max-w-sm">
+            {activeElder
+              ? 'Click "Upload Document" to add lab sheets, prescription slips, or clinical PDFs for this senior.'
+              : t('reports.empty.desc')}
           </p>
         </div>
       ) : (
@@ -412,5 +500,17 @@ export default function ReportsPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function ReportsPage() {
+  return (
+    <Suspense fallback={
+      <div className="p-8 flex justify-center">
+        <AiOrb mode="report" size={20} state="searching" statusText="Loading Medical Library...." />
+      </div>
+    }>
+      <ReportsContent />
+    </Suspense>
   )
 }

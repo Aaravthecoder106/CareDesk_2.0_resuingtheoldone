@@ -30,6 +30,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(result, { status: 400 })
     }
 
+    // If no email was provided, this is an instant Game-Style Care Code generation
+    if (!email || !email.trim()) {
+      return NextResponse.json({
+        ok: true,
+        token: result.token,
+        emailSent: false,
+      })
+    }
+
     const inviterName =
       user.user_metadata?.full_name ||
       [user.user_metadata?.first_name, user.user_metadata?.last_name].filter(Boolean).join(' ') ||

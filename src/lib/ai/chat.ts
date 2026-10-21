@@ -12,7 +12,8 @@ import { ensureCurrentUserProvisioned } from '@/lib/data/users'
 export async function chatWithAI(
   message: string,
   history: { role: string; content: string }[],
-  image?: { data: string; mimeType: string }
+  image?: { data: string; mimeType: string },
+  patientId?: string
 ): Promise<{ ok: true; reply: string } | { ok: false; error: string }> {
   try {
     const supabase = await createClient()
@@ -21,7 +22,8 @@ export async function chatWithAI(
 
     await ensureCurrentUserProvisioned()
 
-    const context = await buildChatContext(user.id)
+    const targetId = patientId && patientId !== user.id ? patientId : user.id
+    const context = await buildChatContext(targetId, user.id)
 
     const reply = image
       ? await generateTextWithImages(context.prompt(message, history), [image])
@@ -36,37 +38,80 @@ export async function chatWithAI(
 }
 
 /**
- * Build the medical context for a user once, then reuse it for prompt construction.
+ * Build the medical context for a user or connected elder, then reuse it for prompt construction.
  */
-async function buildChatContext(userId: string) {
-  const supabase = await createClient()
+async function buildChatContext(targetUserId: string, callerUserId: string) {
+  const isCaregiverView = targetUserId !== callerUserId
+  const admin = createAdminSupabaseClient()
+
+  let patientName = 'Patient'
+  let relationNote = ''
+
+  if (isCaregiverView) {
+    // Verify accepted Care Circle link
+    const { data: link } = await admin
+      .from('family_members')
+      .select('relation')
+      .eq('status', 'accepted')
+      .or(`and(owner_id.eq.${callerUserId},member_id.eq.${targetUserId}),and(owner_id.eq.${targetUserId},member_id.eq.${callerUserId})`)
+      .maybeSingle()
+
+    if (!link) {
+      throw new Error("Not authorized to consult AI on this patient's records")
+    }
+
+    const { data: patientUser } = await admin
+      .from('users')
+      .select('first_name, last_name, email')
+      .eq('id', targetUserId)
+      .maybeSingle()
+
+    patientName = [patientUser?.first_name, patientUser?.last_name].filter(Boolean).join(' ') || patientUser?.email || 'Connected Elder'
+    relationNote = link.relation ? ` (${link.relation})` : ''
+  }
+
+  const client = isCaregiverView ? admin : await createClient()
 
   const [reportsResult, labsResult, medsResult, conditionsResult] = await Promise.all([
-    supabase
+    client
       .from('reports')
       .select('id, title, ai_summary')
-      .eq('patient_id', userId)
+      .eq('patient_id', targetUserId)
       .eq('status', 'ready')
       .order('created_at', { ascending: false })
       .limit(20),
-    supabase
+    client
       .from('lab_results')
       .select('test_name, value, unit, flag, test_date')
-      .eq('patient_id', userId)
+      .eq('patient_id', targetUserId)
       .order('test_date', { ascending: false })
       .limit(50),
-    supabase
+    client
       .from('medications')
       .select('name, dose, frequency, status')
-      .eq('patient_id', userId)
+      .eq('patient_id', targetUserId)
       .eq('status', 'active'),
-    supabase
+    client
       .from('conditions')
       .select('name, status')
-      .eq('patient_id', userId),
+      .eq('patient_id', targetUserId),
   ])
 
-  let context = `You are CareDesk AI, an empathetic and knowledgeable personal health assistant. You have access to the patient's verified medical data below. Answer questions clearly, accurately, and compassionately.
+  let context = isCaregiverView
+    ? `You are CareDesk ElderCare AI, an empathetic, highly knowledgeable geriatric health assistant consulting with a family caregiver. You are analyzing the verified medical data for ${patientName}${relationNote}. Answer questions clearly, accurately, and compassionately with practical caregiving guidance, potential drug interactions, and dietary/lifestyle tips.
+
+Formatting & Visual Styling Instructions:
+Use rich Markdown formatting to make your responses structured, professional, and easily readable for caregivers:
+- **Bold Key Terms** (\`**text**\`): Use bold for vital signs, lab test names, medication names, dosages, frequencies, and important warnings (e.g., **Fasting Glucose**, **Metformin 500mg**, **140 mg/dL**).
+- *Italic Highlights* (\`*text*\`): Use italics for secondary notes, clinical observations, or gentle suggestions.
+- **Headings** (\`### Section Title\`): Organize explanations with clean section headings (e.g., \`### Health Status Overview\`, \`### Medication & Lab Analysis\`, \`### Caregiver Action Checklist\`, \`### Questions for Doctor\`).
+- **Bullet Points & Lists** (\`- \` or \`1. \`): Format recommendations, precautions, and dietary tips as structured lists.
+- **Metrics & Ranges** (\`value\`): Format specific lab reference ranges, measurements, and units using inline code (e.g., \`120/80 mmHg\`, \`70–99 mg/dL\`).
+- **Important Disclaimers** (\`> note\`): Remind the caregiver that your guidance is educational and does not replace the diagnosis or treatment of a licensed physician.
+
+${patientName}'s Medical Data:
+`
+    : `You are CareDesk AI, an empathetic and knowledgeable personal health assistant. You have access to the patient's verified medical data below. Answer questions clearly, accurately, and compassionately.
 
 Formatting & Visual Styling Instructions:
 Use rich Markdown formatting to make your responses structured, professional, and easily readable for patients and caregivers:
@@ -74,7 +119,7 @@ Use rich Markdown formatting to make your responses structured, professional, an
 - *Italic Highlights* (\`*text*\`): Use italics for secondary notes, Latin medical phrases, or mild qualifiers.
 - **Headings** (\`### Section Title\`): Organize explanations with clean section headings (e.g., \`### Overview\`, \`### What Your Results Mean\`, \`### Questions for Your Doctor\`).
 - **Bullet Points & Lists** (\`- \` or \`1. \`): Format steps, recommendations, symptom checklists, and dietary tips as bulleted or numbered lists rather than dense paragraphs.
-- **Metrics & Ranges** (\`\`\`value\`\`\`): Format specific lab reference ranges, measurements, and units using inline code (e.g., \`120/80 mmHg\`, \`70–99 mg/dL\`, \`< 5.7%\`).
+- **Metrics & Ranges** (\`value\`): Format specific lab reference ranges, measurements, and units using inline code (e.g., \`120/80 mmHg\`, \`70–99 mg/dL\`, \`< 5.7%\`).
 - **Important Disclaimers** (\`> note\`): Use blockquotes for safety notes or critical disclaimers.
 - Always maintain an encouraging, supportive tone and remind the patient that your guidance is educational and does not replace the diagnosis or treatment of a licensed physician.
 
@@ -145,6 +190,7 @@ async function saveMessages(userId: string, userMessage: string, assistantReply:
 export async function chatWithAIStream(
   message: string,
   history: { role: string; content: string }[],
+  patientId?: string,
 ): Promise<ReadableStream<Uint8Array> | { ok: false; error: string }> {
   try {
     const supabase = await createClient()
@@ -154,7 +200,8 @@ export async function chatWithAIStream(
     await ensureCurrentUserProvisioned()
 
     const userId = user.id
-    const context = await buildChatContext(userId)
+    const targetId = patientId && patientId !== userId ? patientId : userId
+    const context = await buildChatContext(targetId, userId)
     const fullPrompt = context.prompt(message, history)
 
     // Use the Gemini SDK's streaming API directly
