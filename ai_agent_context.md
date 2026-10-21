@@ -281,8 +281,15 @@ CareDesk-ip-reviewmaker-main/ (Workspace Root)
    - Extracted results are written to normalized relational tables (`lab_results`, `medications`, `conditions`).
 2. **AI Chat Pipeline (`src/lib/ai/chat.ts`):**
    - Retrieves the patient's top 20 recent reports, 50 latest lab results, active medications, and conditions from Supabase.
-   - Synthesizes this into a contextual medical system prompt.
+   - Synthesizes this into a contextual medical system prompt with explicit Markdown formatting guidelines:
+     - **Bold text** (`**term**`) for lab tests, medications, dosages, and key findings.
+     - *Italics* (`*term*`) for secondary nuances or qualifiers.
+     - **Headings** (`### Section`) for structured sections (Overview, Findings, Next Steps).
+     - **Lists** (`- ` and `1. `) for recommendations and symptom checklists.
+     - **Inline code** (`` `value` ``) for exact reference ranges and units.
+     - **Blockquotes** (`> notice`) for safety disclaimers.
    - Calls Gemini (`gemini-3-flash-preview` with automatic fallback to `gemini-flash-lite-latest` on 429/503/404 errors).
+   - Client renders formatted output using zero-dependency `<Markdown />` component (`src/components/markdown.tsx`).
    - Saves both user query and assistant reply in `chat_messages`.
 
 ### D. Subscriptions & Payments (Razorpay)
