@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Public_Sans } from "next/font/google";
 import { Providers } from "@/components/providers";
+import { NavigationProgress } from "@/components/navigation-progress";
 import "./globals.css";
 
 const publicSans = Public_Sans({
@@ -37,6 +39,9 @@ export default function RootLayout({
       <body
         className={`${publicSans.variable} antialiased`}
       >
+        <Suspense fallback={null}>
+          <NavigationProgress />
+        </Suspense>
         <Providers>
           {children}
         </Providers>

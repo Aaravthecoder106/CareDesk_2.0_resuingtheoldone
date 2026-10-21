@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { useLanguage } from '@/lib/i18n/language-context'
 import { BarChart3, RefreshCw, Loader2, TrendingUp, Pill, AlertCircle, FileText } from 'lucide-react'
+import { AiOrb } from '@/components/ai-orb'
 import {
   BarChart,
   Bar,
@@ -159,8 +160,22 @@ export default function AnalyticsPage() {
       )}
 
       {loading ? (
-        <div className="flex justify-center py-16">
-          <Loader2 className="size-8 animate-spin text-on-surface-variant" />
+        <div className="space-y-6 animate-fadeIn py-2">
+          <div className="flex justify-center py-4">
+            <AiOrb mode="report" size={20} state="solving" statusText="Analyzing health trends & biomarkers...." />
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="glass-panel rounded-2xl p-4 sm:p-5 space-y-3">
+                <div className="size-9 rounded-xl bg-surface-container-high/70 animate-pulse" />
+                <div className="h-4 w-24 bg-surface-container/70 rounded animate-pulse" />
+                <div className="h-7 w-16 bg-surface-container-high/80 rounded animate-pulse" />
+              </div>
+            ))}
+          </div>
+          <div className="glass-panel rounded-2xl p-6 h-64 flex items-center justify-center">
+            <div className="h-44 w-full bg-surface-container/60 rounded-xl animate-pulse" />
+          </div>
         </div>
       ) : !data ? (
         <div className="glass-panel organic-radius flex flex-col items-center justify-center py-16">

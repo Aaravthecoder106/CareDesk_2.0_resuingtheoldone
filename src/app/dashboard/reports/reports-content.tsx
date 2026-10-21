@@ -41,6 +41,7 @@ export default function ReportsPage() {
   const [uploadProgress, setUploadProgress] = useState('')
   const [error, setError] = useState('')
   const [analyzing, setAnalyzing] = useState<string | null>(null)
+  const [previewingId, setPreviewingId] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -194,6 +195,7 @@ export default function ReportsPage() {
   }
 
   async function handlePreview(id: string) {
+    setPreviewingId(id)
     setError('')
     try {
       const res = await fetch(`/api/reports/preview?id=${id}`)
@@ -206,12 +208,13 @@ export default function ReportsPage() {
     } catch {
       setError(t('reports.errors.previewFailed'))
     }
+    setPreviewingId(null)
   }
 
   if (locked === null) {
     return (
-      <div className="flex justify-center py-24">
-        <Loader2 className="size-8 animate-spin text-on-surface-variant" />
+      <div className="flex flex-col items-center justify-center py-24 gap-3 animate-fadeIn">
+        <AiOrb mode="report" size={20} state="searching" statusText="Verifying medical library access...." />
       </div>
     )
   }
@@ -306,8 +309,24 @@ export default function ReportsPage() {
 
       {/* Content */}
       {loading ? (
-        <div className="flex justify-center py-16">
-          <Loader2 className="size-8 animate-spin text-on-surface-variant" />
+        <div className="space-y-4 animate-fadeIn py-2">
+          <div className="flex justify-center py-4">
+            <AiOrb mode="report" size={20} state="searching" statusText="Loading medical reports & documents...." />
+          </div>
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="glass-panel rounded-xl p-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="size-10 rounded-lg bg-surface-container-high/70 animate-pulse" />
+                  <div className="space-y-1.5">
+                    <div className="h-4 w-44 bg-surface-container-high/80 rounded animate-pulse" />
+                    <div className="h-3 w-28 bg-surface-container/70 rounded animate-pulse" />
+                  </div>
+                </div>
+                <div className="h-8 w-20 bg-surface-container/60 rounded-md animate-pulse" />
+              </div>
+            ))}
+          </div>
         </div>
       ) : reports.length === 0 ? (
         <div className="glass-panel organic-radius flex flex-col items-center justify-center py-16">
@@ -354,10 +373,15 @@ export default function ReportsPage() {
                     variant="ghost"
                     size="icon-sm"
                     onClick={() => handlePreview(report.id)}
+                    disabled={previewingId === report.id}
                     title={t('reports.viewDocument')}
                     className="hover:bg-surface-container"
                   >
-                    <Eye className="size-4 text-on-surface-variant" />
+                    {previewingId === report.id ? (
+                      <Loader2 className="size-4 animate-spin text-secondary" />
+                    ) : (
+                      <Eye className="size-4 text-on-surface-variant" />
+                    )}
                   </Button>
                   <Button
                     variant="ghost"

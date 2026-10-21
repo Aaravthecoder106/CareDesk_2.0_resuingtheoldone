@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useLanguage } from '@/lib/i18n/language-context'
 import { Shield, Lock, Unlock, Loader2, Trash2, Sparkles } from 'lucide-react'
+import { AiOrb } from '@/components/ai-orb'
 
 export default function SettingsPage() {
   const { t } = useLanguage()
@@ -122,7 +123,9 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent>
             {loading ? (
-              <Loader2 className="size-4 animate-spin" />
+              <div className="py-2">
+                <AiOrb size={20} state="searching" statusText="Checking security credentials...." />
+              </div>
             ) : hasPassword ? (
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm text-muted-foreground">

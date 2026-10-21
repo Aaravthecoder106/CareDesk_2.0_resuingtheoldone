@@ -5,6 +5,7 @@ import { useUser } from '@/components/auth-context'
 import { Button } from '@/components/ui/button'
 import { useLanguage } from '@/lib/i18n/language-context'
 import { Users, UserPlus, Check, X, Trash2, Loader2, Mail, Bell, Copy, Ticket, MessageCircle, Share2 } from 'lucide-react'
+import { AiOrb } from '@/components/ai-orb'
 
 interface FamilyMember {
   id: string
@@ -273,8 +274,28 @@ export default function FamilyPage() {
       )}
 
       {loading ? (
-        <div className="flex justify-center py-16">
-          <Loader2 className="size-8 animate-spin text-on-surface-variant" />
+        <div className="space-y-4 animate-fadeIn py-2">
+          <div className="flex justify-center py-4">
+            <AiOrb size={20} state="connecting" statusText="Connecting family care circle...." />
+          </div>
+          <div className="glass-panel organic-radius p-5 space-y-3">
+            <div className="h-5 w-40 bg-surface-container-high/70 rounded animate-pulse" />
+            <div className="h-10 w-full bg-surface-container/60 rounded-lg animate-pulse" />
+          </div>
+          <div className="space-y-2">
+            {[1, 2].map((i) => (
+              <div key={i} className="glass-panel rounded-xl p-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="size-9 rounded-full bg-surface-container-high/70 animate-pulse" />
+                  <div className="space-y-1">
+                    <div className="h-4 w-32 bg-surface-container-high/80 rounded animate-pulse" />
+                    <div className="h-3 w-20 bg-surface-container/70 rounded animate-pulse" />
+                  </div>
+                </div>
+                <div className="h-8 w-16 bg-surface-container/60 rounded animate-pulse" />
+              </div>
+            ))}
+          </div>
         </div>
       ) : (
         <>

@@ -68,9 +68,9 @@ export function DashboardContent({ firstName, hasPatient }: DashboardContentProp
       {/* Quick Actions */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {quickActions.map((action) => (
-          <Link key={action.href} href={action.href}>
-            <div className="glass-panel organic-radius p-6 transition-all duration-300 hover:-translate-y-1 cursor-pointer h-full">
-              <div className={`w-12 h-12 rounded-2xl ${action.bg} flex items-center justify-center mb-4`}>
+          <Link key={action.href} href={action.href} className="block group">
+            <div className="glass-panel organic-radius p-6 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg active:scale-[0.98] active:ring-2 active:ring-secondary/40 cursor-pointer h-full select-none group-hover:border-secondary/30">
+              <div className={`w-12 h-12 rounded-2xl ${action.bg} flex items-center justify-center mb-4 transition-transform duration-200 group-hover:scale-110`}>
                 <action.icon className={`size-6 ${action.color}`} />
               </div>
               <h3 className="text-[16px] font-semibold text-deep-navy mb-2">{action.title}</h3>

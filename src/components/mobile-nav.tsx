@@ -18,12 +18,17 @@ import {
   Menu,
   X,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export function MobileNav() {
   const pathname = usePathname()
   const { t } = useLanguage()
   const [isOpen, setIsOpen] = useState(false)
+  const [pendingHref, setPendingHref] = useState<string | null>(null)
+
+  useEffect(() => {
+    setPendingHref(null)
+  }, [pathname])
 
   const navItems = [
     { href: '/dashboard', label: t('nav.dashboard'), icon: LayoutDashboard },
@@ -57,15 +62,20 @@ export function MobileNav() {
         <div className="lg:hidden glass-panel-strong border-b border-outline-variant/40 px-4 py-3">
           <nav className="space-y-1">
             {navItems.map((item) => {
+              const isPending = pendingHref === item.href
               const isActive =
-                item.href === '/dashboard'
+                isPending ||
+                (item.href === '/dashboard'
                   ? pathname === '/dashboard'
-                  : pathname.startsWith(item.href)
+                  : pathname.startsWith(item.href))
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  onClick={() => setIsOpen(false)}
+                  onClick={() => {
+                    if (item.href !== pathname) setPendingHref(item.href)
+                    setIsOpen(false)
+                  }}
                   className={cn(
                     'flex items-center gap-2.5 rounded-lg px-3 py-3 text-sm font-medium transition-all duration-200 active:bg-surface-container',
                     isActive
@@ -74,7 +84,13 @@ export function MobileNav() {
                   )}
                 >
                   <item.icon className={cn('size-4 shrink-0', isActive && 'text-primary')} />
-                  {item.label}
+                  <span>{item.label}</span>
+                  {isPending && (
+                    <span className="ml-auto flex size-2 relative">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75" />
+                      <span className="relative inline-flex rounded-full size-2 bg-secondary" />
+                    </span>
+                  )}
                 </Link>
               )
             })}

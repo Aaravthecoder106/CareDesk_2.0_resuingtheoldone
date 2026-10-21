@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Show } from '@/components/auth-context'
@@ -14,12 +15,16 @@ import {
   BarChart3,
   Users,
   Settings,
-  Sparkles,
 } from 'lucide-react'
 
 export function Sidebar() {
   const pathname = usePathname()
   const { t } = useLanguage()
+  const [pendingHref, setPendingHref] = useState<string | null>(null)
+
+  useEffect(() => {
+    setPendingHref(null)
+  }, [pathname])
 
   const navItems = [
     { href: '/dashboard', label: t('nav.dashboard'), icon: LayoutDashboard },
@@ -41,14 +46,19 @@ export function Sidebar() {
         {/* Nav Items */}
         <nav className="flex-1 space-y-1 p-3 mt-2">
           {navItems.map((item) => {
+            const isPending = pendingHref === item.href
             const isActive =
-              item.href === '/dashboard'
+              isPending ||
+              (item.href === '/dashboard'
                 ? pathname === '/dashboard'
-                : pathname.startsWith(item.href)
+                : pathname.startsWith(item.href))
             return (
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={() => {
+                  if (item.href !== pathname) setPendingHref(item.href)
+                }}
                 className={cn(
                   'flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
                   isActive
@@ -57,7 +67,13 @@ export function Sidebar() {
                 )}
               >
                 <item.icon className={cn('size-4 shrink-0', isActive && 'text-primary')} />
-                {item.label}
+                <span>{item.label}</span>
+                {isPending && (
+                  <span className="ml-auto flex size-2 relative">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75" />
+                    <span className="relative inline-flex rounded-full size-2 bg-secondary" />
+                  </span>
+                )}
               </Link>
             )
           })}

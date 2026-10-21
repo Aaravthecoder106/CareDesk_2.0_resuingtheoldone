@@ -186,8 +186,8 @@ export default function ChatPage() {
       <div className="flex-1 overflow-hidden glass-panel organic-radius flex flex-col">
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {historyLoading ? (
-            <div className="flex justify-center py-8">
-              <Loader2 className="size-6 animate-spin text-on-surface-variant" />
+            <div className="flex flex-col items-center justify-center py-16 gap-3">
+              <AiOrb mode="chat" size={20} state="searching" statusText="Loading conversation history...." />
             </div>
           ) : messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12">
