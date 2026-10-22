@@ -128,7 +128,7 @@ function FamilyContent() {
       const data = await res.json()
       if (data.ok && data.token) {
         setActiveCareCode(data.token)
-        setMessage(`🎮 Instant Care Code generated: ${data.token}! Share it with your loved one to pair.`)
+        setMessage(`Instant Care Code generated: ${data.token}! Share it with your loved one to pair.`)
         fetchData(false)
       } else {
         setMessage(data.error || 'Failed to generate Care Code')
@@ -186,7 +186,7 @@ function FamilyContent() {
       })
       const data = await res.json()
       if (data.ok) {
-        setMessage('🎉 Connected successfully! You are now paired in your Elder Care Circle. Shared medical stats and AI health consults are unlocked!')
+        setMessage('Connected successfully! You are now paired in your Elder Care Circle. Shared medical stats and AI health consults are unlocked.')
         setAcceptCode('')
         fetchData(false)
       } else {

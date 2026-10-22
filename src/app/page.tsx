@@ -109,9 +109,6 @@ export default function Home() {
             <a className="text-on-surface-variant hover:text-secondary transition-colors px-3 py-2 rounded-lg font-medium" href="#features">
               Health Intelligence
             </a>
-            <a className="text-on-surface-variant hover:text-secondary transition-colors px-3 py-2 rounded-lg font-medium" href="#trust">
-              Stories
-            </a>
           </div>
 
           <div className="flex items-center gap-2">
@@ -160,9 +157,6 @@ export default function Home() {
               </a>
               <a className="block text-on-surface-variant hover:text-secondary transition-colors px-3 py-2.5 rounded-lg text-[15px] font-medium" href="#features" onClick={() => setMenuOpen(false)}>
                 Health Intelligence
-              </a>
-              <a className="block text-on-surface-variant hover:text-secondary transition-colors px-3 py-2.5 rounded-lg text-[15px] font-medium" href="#trust" onClick={() => setMenuOpen(false)}>
-                Stories
               </a>
               <Link href="/sign-in" className="block text-secondary font-semibold px-3 py-2.5 text-[15px]" onClick={() => setMenuOpen(false)}>
                 Sign In
@@ -555,58 +549,12 @@ export default function Home() {
 
               <div className="glass-panel organic-radius p-5 space-y-2 border border-white">
                 <div className="size-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-800">
-                  <Heart className="size-5" />
+                  <Shield className="size-5" />
                 </div>
-                <h4 className="text-[15px] font-bold text-deep-navy">100% Free & Unlimited</h4>
+                <h4 className="text-[15px] font-bold text-deep-navy">Private & Isolated</h4>
                 <p className="text-[13px] text-on-surface-variant leading-relaxed">
-                  Zero subscription barriers or hidden paywalls. Unlimited report scanning, vitals tracking, and AI consults.
+                  Row-level security ensures medical records and conversations stay strictly within your authorized family circle.
                 </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Stories / Testimonials */}
-        <section id="trust" className="py-12 sm:py-20 px-4 sm:px-6 md:px-16 bg-surface-container-low/40">
-          <div className="max-w-[1440px] mx-auto">
-            <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-14">
-              <span className="text-[12px] font-bold uppercase tracking-widest text-secondary block mb-2">
-                Trusted by Families
-              </span>
-              <h2 className="text-[26px] sm:text-[32px] font-bold text-deep-navy">
-                Stories From Real Family Caregivers
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto">
-              <div className="glass-panel organic-radius p-6 sm:p-8 space-y-4 border border-white">
-                <p className="text-[14px] sm:text-[15px] text-deep-navy italic leading-relaxed">
-                  &ldquo;I live 400 miles away from my 78-year-old mother. With CareDesk, she simply snaps a photo of her blood work at the clinic. I get an instant breakdown of her glucose and kidney numbers, and I can ask the AI what her cardiologist might suggest. It has been a lifesaver.&rdquo;
-                </p>
-                <div className="flex items-center gap-3 pt-2 border-t border-outline-variant/30">
-                  <div className="size-10 rounded-full bg-secondary/15 flex items-center justify-center font-bold text-secondary text-sm">
-                    SK
-                  </div>
-                  <div>
-                    <h5 className="text-[14px] font-bold text-deep-navy">Sunita K.</h5>
-                    <p className="text-[12px] text-on-surface-variant">Caring for Mother (Bengaluru)</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="glass-panel organic-radius p-6 sm:p-8 space-y-4 border border-white">
-                <p className="text-[14px] sm:text-[15px] text-deep-navy italic leading-relaxed">
-                  &ldquo;The Care Code invite took literally 10 seconds. My dad is not tech-savvy, but I just told him to open the app and type &apos;CARE-419&apos;. We were immediately paired, and now my sister and I can both monitor his hypertension medications together.&rdquo;
-                </p>
-                <div className="flex items-center gap-3 pt-2 border-t border-outline-variant/30">
-                  <div className="size-10 rounded-full bg-electric-blue/25 flex items-center justify-center font-bold text-deep-navy text-sm">
-                    MR
-                  </div>
-                  <div>
-                    <h5 className="text-[14px] font-bold text-deep-navy">Michael R.</h5>
-                    <p className="text-[12px] text-on-surface-variant">Caring for Father (Mumbai)</p>
-                  </div>
-                </div>
               </div>
             </div>
           </div>

@@ -200,13 +200,13 @@ export async function acceptFamilyInvite(
       {
         user_id: invite.owner_id,
         type: 'family_confirmed',
-        title: '🎉 Connected to Care Circle!',
+        title: 'Connected to Care Circle',
         body: `${acceptorName} used Care Code ${invite.token} and joined your Care Circle. Shared medical stats and AI health consults are now active!`,
       },
       {
         user_id: user.id,
         type: 'family_confirmed',
-        title: '🎉 Connected to Care Circle!',
+        title: 'Connected to Care Circle',
         body: `You are now paired with your loved one. Shared medical stats and AI health consults are now active!`,
       },
     ])

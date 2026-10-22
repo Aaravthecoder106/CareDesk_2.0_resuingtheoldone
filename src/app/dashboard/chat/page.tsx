@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback, Suspense } from 'react'
 import { BorderBeam } from 'border-beam'
 import { Button } from '@/components/ui/button'
 import { useLanguage } from '@/lib/i18n/language-context'
-import { Send, Trash2, Loader2, ImagePlus, X, Users, Sparkles, Shield, User } from 'lucide-react'
+import { Send, Trash2, Loader2, ImagePlus, X, Users, Sparkles, Shield, User, Heart } from 'lucide-react'
 import { Markdown } from '@/components/markdown'
 import { AiOrb } from '@/components/ai-orb'
 import { useSearchParams } from 'next/navigation'
@@ -254,13 +254,14 @@ function ChatContent() {
           </span>
           <button
             onClick={() => setSelectedPatientId('me')}
-            className={`px-3 py-1.5 rounded-full text-[12px] font-semibold transition-all ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-semibold transition-all ${
               selectedPatientId === 'me'
                 ? 'bg-primary text-white shadow-sm ring-1 ring-secondary/50'
                 : 'bg-white text-on-surface-variant hover:bg-white/80 border border-outline-variant/40'
             }`}
           >
-            👤 My Own Health
+            <User className="size-3.5" />
+            <span>My Own Health</span>
           </button>
           {familyMembers.map((m) => {
             const memberTargetId = m.connected_user_id || m.member_id
@@ -275,7 +276,8 @@ function ChatContent() {
                     : 'bg-white text-deep-navy hover:bg-white/80 border border-outline-variant/40'
                 }`}
               >
-                <span>👵 {m.display_name}</span>
+                <Heart className="size-3.5" />
+                <span>{m.display_name}</span>
                 {m.relation && <span className="text-[10px] opacity-80 font-normal">({m.relation})</span>}
               </button>
             )

@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback, Suspense } from 'react'
 import { Button } from '@/components/ui/button'
 import { useLanguage } from '@/lib/i18n/language-context'
-import { FolderOpen, Upload, Trash2, RefreshCw, FileText, Loader2, Lock, Eye, Users, MessageSquare, Sparkles } from 'lucide-react'
+import { FolderOpen, Upload, Trash2, RefreshCw, FileText, Loader2, Lock, Eye, Users, MessageSquare, Sparkles, User, Heart } from 'lucide-react'
 import { AiOrb } from '@/components/ai-orb'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
@@ -324,13 +324,14 @@ function ReportsContent() {
         <div className="mb-6 flex flex-wrap gap-2 bg-surface-container-low/70 p-2 rounded-2xl border border-outline-variant/30">
           <button
             onClick={() => setSelectedPatientId('me')}
-            className={`px-4 py-1.5 rounded-full text-[13px] font-semibold transition-all ${
+            className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[13px] font-semibold transition-all ${
               selectedPatientId === 'me'
                 ? 'bg-primary text-white shadow-sm ring-1 ring-secondary/50'
                 : 'bg-white text-on-surface-variant hover:bg-white/80 border border-outline-variant/40'
             }`}
           >
-            👤 My Reports
+            <User className="size-3.5" />
+            <span>My Reports</span>
           </button>
           {familyMembers.map((m) => {
             const memberTargetId = m.connected_user_id || m.member_id
@@ -345,7 +346,8 @@ function ReportsContent() {
                     : 'bg-white text-deep-navy hover:bg-white/80 border border-outline-variant/40'
                 }`}
               >
-                <span>👵 {m.display_name}</span>
+                <Heart className="size-3.5" />
+                <span>{m.display_name}</span>
                 {m.relation && <span className="text-[10px] opacity-80 font-normal">({m.relation})</span>}
               </button>
             )

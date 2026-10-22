@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { Button } from '@/components/ui/button'
 import { useLanguage } from '@/lib/i18n/language-context'
-import { BarChart3, RefreshCw, Loader2, TrendingUp, Pill, AlertCircle, FileText, MessageSquare, Sparkles } from 'lucide-react'
+import { BarChart3, RefreshCw, Loader2, TrendingUp, Pill, AlertCircle, FileText, MessageSquare, Sparkles, User, Heart } from 'lucide-react'
 import { AiOrb } from '@/components/ai-orb'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
@@ -146,25 +146,27 @@ function AnalyticsContent() {
         <div className="mb-6 flex flex-wrap gap-2 bg-surface-container-low/70 p-2 rounded-2xl border border-outline-variant/30">
           <button
             onClick={() => setViewing('me')}
-            className={`px-4 py-1.5 rounded-full text-[13px] font-semibold transition-all ${
+            className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[13px] font-semibold transition-all ${
               viewing === 'me'
                 ? 'bg-primary text-white shadow-sm ring-1 ring-secondary/50'
                 : 'bg-white text-on-surface-variant hover:bg-white/80 border border-outline-variant/40'
             }`}
           >
-            👤 My Analytics
+            <User className="size-3.5" />
+            <span>My Analytics</span>
           </button>
           {family.map((f) => (
             <button
               key={f.user_id}
               onClick={() => setViewing(f.user_id)}
-              className={`px-4 py-1.5 rounded-full text-[13px] font-semibold transition-all ${
+              className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[13px] font-semibold transition-all ${
                 viewing === f.user_id
                   ? 'bg-primary text-white shadow-sm ring-2 ring-secondary'
                   : 'bg-white text-deep-navy hover:bg-white/80 border border-outline-variant/40'
               }`}
             >
-              👵 {f.name} (Elder Stats)
+              <Heart className="size-3.5" />
+              <span>{f.name} (Elder Stats)</span>
             </button>
           ))}
         </div>
