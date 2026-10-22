@@ -52,3 +52,21 @@ test('eldercare validations: accept schema supports 6-character room codes', () 
   })
   assert.equal(acceptEmpty.success, false)
 })
+
+test('eldercare chat partitioning: schema supports patientId nullable and UUID', () => {
+  const chatWithNullPatient = chatMessageSchema.safeParse({
+    message: 'General inquiry',
+    patientId: undefined,
+  })
+  assert.equal(chatWithNullPatient.success, true)
+
+  const elderId = 'b0000000-0000-4000-8000-000000000002'
+  const chatWithElderPatient = chatMessageSchema.safeParse({
+    message: 'Can she take vitamins with blood pressure meds?',
+    patientId: elderId,
+  })
+  assert.equal(chatWithElderPatient.success, true)
+  if (chatWithElderPatient.success) {
+    assert.equal(chatWithElderPatient.data.patientId, elderId)
+  }
+})

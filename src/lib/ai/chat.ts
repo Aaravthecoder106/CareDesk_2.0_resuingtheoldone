@@ -29,7 +29,7 @@ export async function chatWithAI(
       ? await generateTextWithImages(context.prompt(message, history), [image])
       : await generateText(context.prompt(message, history))
 
-    await saveMessages(user.id, message, reply, !!image)
+    await saveMessages(user.id, message, reply, !!image, targetId !== user.id ? targetId : undefined)
 
     return { ok: true, reply }
   } catch (err) {
@@ -154,15 +154,44 @@ User's Medical Data:
   }
 }
 
-async function saveMessages(userId: string, userMessage: string, assistantReply: string, hasImage: boolean) {
+async function saveMessages(
+  userId: string,
+  userMessage: string,
+  assistantReply: string,
+  hasImage: boolean,
+  patientId?: string
+) {
   try {
     const admin = createAdminSupabaseClient()
-    const { data, error } = await admin.from('chat_messages').insert([
-      { user_id: userId, role: 'user', content: hasImage ? `${userMessage} [image attached]` : userMessage },
-      { user_id: userId, role: 'assistant', content: assistantReply },
-    ]).select('id')
+    const targetPatient = patientId && patientId !== userId ? patientId : null
+
+    const rows = [
+      {
+        user_id: userId,
+        patient_id: targetPatient,
+        role: 'user',
+        content: hasImage ? `${userMessage} [image attached]` : userMessage,
+      },
+      {
+        user_id: userId,
+        patient_id: targetPatient,
+        role: 'assistant',
+        content: assistantReply,
+      },
+    ]
+
+    const { data, error } = await admin.from('chat_messages').insert(rows).select('id')
 
     if (error) {
+      // Graceful backward-compatibility if patient_id column has not been added to live DB yet
+      if (error.code === 'PGRST204' || error.message.includes('patient_id')) {
+        const fallbackRows = [
+          { user_id: userId, role: 'user', content: hasImage ? `${userMessage} [image attached]` : userMessage },
+          { user_id: userId, role: 'assistant', content: assistantReply },
+        ]
+        await admin.from('chat_messages').insert(fallbackRows)
+        return true
+      }
       logger.error({ userId, err: error.message }, 'Failed to persist chat messages')
       return false
     }
@@ -224,8 +253,8 @@ export async function chatWithAIStream(
           }
           controller.close()
 
-          // Save messages after stream completes
-          await saveMessages(userId, message, fullReply, false)
+          // Save messages partitioned by active patient
+          await saveMessages(userId, message, fullReply, false, targetId !== userId ? targetId : undefined)
         } catch (err) {
           controller.error(err)
         }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, Suspense } from 'react'
+import { useState, useRef, useEffect, useCallback, Suspense } from 'react'
 import { BorderBeam } from 'border-beam'
 import { Button } from '@/components/ui/button'
 import { useLanguage } from '@/lib/i18n/language-context'
@@ -43,8 +43,25 @@ function ChatContent() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  const fetchHistory = useCallback(async (targetPatientId?: string) => {
+    setHistoryLoading(true)
+    try {
+      const param = targetPatientId && targetPatientId !== 'me' ? `?patient=${encodeURIComponent(targetPatientId)}` : ''
+      const res = await fetch(`/api/chat/history${param}`)
+      if (res.ok) {
+        const data = await res.json()
+        setMessages(data.messages || [])
+      } else {
+        console.error('Failed to fetch history, status:', res.status)
+      }
+    } catch (err) {
+      console.error('Failed to fetch history:', err)
+    } finally {
+      setHistoryLoading(false)
+    }
+  }, [])
+
   useEffect(() => {
-    fetchHistory()
     fetchFamily()
   }, [])
 
@@ -53,6 +70,10 @@ function ChatContent() {
       setSelectedPatientId(patientParam)
     }
   }, [patientParam])
+
+  useEffect(() => {
+    fetchHistory(selectedPatientId)
+  }, [selectedPatientId, fetchHistory])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -68,22 +89,6 @@ function ChatContent() {
       }
     } catch (e) {
       console.error('Failed to load family members:', e)
-    }
-  }
-
-  async function fetchHistory() {
-    try {
-      const res = await fetch('/api/chat/history')
-      if (res.ok) {
-        const data = await res.json()
-        setMessages(data.messages || [])
-      } else {
-        console.error('Failed to fetch history, status:', res.status)
-      }
-    } catch (err) {
-      console.error('Failed to fetch history:', err)
-    } finally {
-      setHistoryLoading(false)
     }
   }
 
@@ -203,7 +208,13 @@ function ChatContent() {
   }
 
   async function handleClear() {
-    await fetch('/api/chat/clear', { method: 'DELETE' })
+    const targetPatient = selectedPatientId === 'me' ? undefined : selectedPatientId
+    const param = targetPatient ? `?patient=${encodeURIComponent(targetPatient)}` : ''
+    await fetch(`/api/chat/clear${param}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ patientId: targetPatient }),
+    })
     setMessages([])
   }
 

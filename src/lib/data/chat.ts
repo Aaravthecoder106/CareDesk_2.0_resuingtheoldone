@@ -7,7 +7,7 @@ import type { Tables } from '@/lib/supabase/types'
 export const FREE_CHAT_DAILY_LIMIT = 5
 export const FREE_CHAT_HISTORY_DAYS = 7
 
-export async function getChatHistory(limit = 50): Promise<Tables<'chat_messages'>[]> {
+export async function getChatHistory(patientId?: string | null, limit = 50): Promise<Tables<'chat_messages'>[]> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return []
@@ -15,15 +15,38 @@ export async function getChatHistory(limit = 50): Promise<Tables<'chat_messages'
   // Ensure user is provisioned in public.users/patients and legacy accounts migrated
   await ensureCurrentUserProvisioned()
 
-  // Retrieve the latest messages for the current user up to `limit`
-  const { data, error } = await supabase
+  const targetPatient = patientId && patientId !== 'me' && patientId !== user.id ? patientId : null
+
+  // Retrieve the latest messages for the current user and active patient context
+  let query = supabase
     .from('chat_messages')
     .select('*')
     .eq('user_id', user.id)
+
+  if (targetPatient) {
+    query = query.eq('patient_id', targetPatient)
+  } else {
+    // Personal conversation thread
+    query = query.or(`patient_id.is.null,patient_id.eq.${user.id}`)
+  }
+
+  const { data, error } = await query
     .order('created_at', { ascending: false })
     .limit(limit)
 
-  if (error) throw new Error(`getChatHistory: ${error.message}`)
+  if (error) {
+    // Graceful backward compatibility if migration 0008 hasn't run on the DB yet
+    if (error.code === 'PGRST204' || error.message.includes('patient_id')) {
+      const fallback = await supabase
+        .from('chat_messages')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(limit)
+      return (fallback.data || []).sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+    }
+    throw new Error(`getChatHistory: ${error.message}`)
+  }
 
   // Sort ascending chronologically; if timestamps match to the microsecond, place 'user' before 'assistant'
   return (data || []).sort((a, b) => {
@@ -57,15 +80,33 @@ export async function countChatMessagesSentToday(): Promise<number> {
   return count || 0
 }
 
-export async function clearChatHistory(): Promise<boolean> {
+export async function clearChatHistory(patientId?: string | null): Promise<boolean> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return false
 
-  const { error } = await supabase
+  const targetPatient = patientId && patientId !== 'me' && patientId !== user.id ? patientId : null
+
+  let query = supabase
     .from('chat_messages')
     .delete()
     .eq('user_id', user.id)
+
+  if (targetPatient) {
+    query = query.eq('patient_id', targetPatient)
+  } else {
+    query = query.or(`patient_id.is.null,patient_id.eq.${user.id}`)
+  }
+
+  const { error } = await query
+
+  if (error && (error.code === 'PGRST204' || error.message.includes('patient_id'))) {
+    const fallback = await supabase
+      .from('chat_messages')
+      .delete()
+      .eq('user_id', user.id)
+    return !fallback.error
+  }
 
   return !error
 }

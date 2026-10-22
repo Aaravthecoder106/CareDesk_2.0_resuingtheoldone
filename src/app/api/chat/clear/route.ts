@@ -12,18 +12,29 @@ export async function DELETE(req: NextRequest) {
     if (!user) return apiError('Unauthorized', 401)
     const userId = user.id
 
-    const ok = await clearChatHistory()
+    const { searchParams } = new URL(req.url)
+    const patientParam = searchParams.get('patient') || searchParams.get('patientId')
+    let bodyPatientId: string | undefined
+    try {
+      const body = await req.json()
+      bodyPatientId = body?.patientId
+    } catch {
+      // Body may be empty on standard DELETE
+    }
+    const patientId = patientParam || bodyPatientId || undefined
+
+    const ok = await clearChatHistory(patientId)
 
     // Audit log clearing of chat history (HIPAA compliance)
     await logAudit({
       actorId: userId,
       action: 'DELETE',
       table: 'chat_messages',
-      recordId: 'all',
+      recordId: patientId ? `patient:${patientId}` : 'self',
       ip: requestIp(req),
     })
 
-    logger.info({ route: '/api/chat/clear', userId, ok }, 'Chat history cleared')
+    logger.info({ route: '/api/chat/clear', userId, patientId, ok }, 'Chat history cleared')
     return NextResponse.json({ ok })
   } catch (err) {
     logger.error({

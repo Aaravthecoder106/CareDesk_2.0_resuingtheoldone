@@ -315,6 +315,7 @@ export type Database = {
         Row: {
           id: string;
           user_id: string;
+          patient_id: string | null;
           role: string;
           content: string;
           created_at: string;
@@ -322,6 +323,7 @@ export type Database = {
         Insert: {
           id?: string;
           user_id: string;
+          patient_id?: string | null;
           role: string;
           content: string;
           created_at?: string;
@@ -329,11 +331,20 @@ export type Database = {
         Update: {
           id?: string;
           user_id?: string;
+          patient_id?: string | null;
           role?: string;
           content?: string;
           created_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_patient_id_fkey";
+            columns: ["patient_id"];
+            isOneToOne: false;
+            referencedRelation: "patients";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       analytics_snapshots: {
         Row: {
