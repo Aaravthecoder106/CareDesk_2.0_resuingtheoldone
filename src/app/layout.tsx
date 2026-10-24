@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { Public_Sans } from "next/font/google";
 import { Providers } from "@/components/providers";
 import { NavigationProgress } from "@/components/navigation-progress";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const publicSans = Public_Sans({
@@ -45,6 +46,7 @@ export default function RootLayout({
         <Providers>
           {children}
         </Providers>
+        <Analytics />
       </body>
     </html>
   );
