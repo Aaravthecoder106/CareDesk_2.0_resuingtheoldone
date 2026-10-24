@@ -209,7 +209,9 @@ async function main() {
   const run2Success = await runTest(2)
   if (!run2Success) throw new Error('Run 2 failed!')
 
-  console.log('\n⭐⭐⭐⭐⭐ ALL 2 RUNS FULLY VERIFIED AND PASSED WITH ZERO ISSUES! ⭐⭐⭐⭐⭐')
+  console.log('\n======================================================')
+  console.log('ALL 2 RUNS FULLY VERIFIED AND PASSED WITH ZERO ISSUES!')
+  console.log('======================================================\n')
 }
 
 main().catch(err => {
