@@ -17,6 +17,7 @@ import {
   Sparkles,
   Menu,
   X,
+  Mail,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
@@ -33,6 +34,7 @@ export function MobileNav() {
   const navItems = [
     { href: '/dashboard', label: t('nav.dashboard'), icon: LayoutDashboard },
     { href: '/dashboard/reports', label: t('nav.reports'), icon: FolderOpen },
+    { href: '/dashboard/messages', label: t('nav.messages'), icon: Mail },
     { href: '/dashboard/chat', label: t('nav.chat'), icon: MessageSquare },
     { href: '/dashboard/analytics', label: t('nav.analytics'), icon: BarChart3 },
     { href: '/dashboard/family', label: t('nav.family'), icon: Users },

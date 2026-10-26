@@ -218,14 +218,14 @@ function ChatContent() {
     setMessages([])
   }
 
-  const activeElder = familyMembers.find(m => m.connected_user_id === selectedPatientId || m.member_id === selectedPatientId || m.owner_id === selectedPatientId)
-  const elderFirstName = activeElder?.display_name?.split(' ')[0] || 'Loved One'
+  const activePatient = familyMembers.find(m => m.connected_user_id === selectedPatientId || m.member_id === selectedPatientId || m.owner_id === selectedPatientId)
+  const patientFirstName = activePatient?.display_name?.split(' ')[0] || 'Patient'
 
-  const elderSuggestedPrompts = [
-    `Summarize ${elderFirstName}'s latest lab tests and any flagged biomarkers.`,
-    `Are there any potential side effects or drug interactions with ${elderFirstName}'s current medications?`,
-    `What key questions should I ask her doctor at her next appointment?`,
-    `What dietary recommendations can help support ${elderFirstName}'s active conditions?`,
+  const patientSuggestedPrompts = [
+    `Summarize ${patientFirstName}'s latest lab tests and any flagged biomarkers.`,
+    `Are there any potential side effects or drug interactions with ${patientFirstName}'s current medications?`,
+    `What key questions should I ask the doctor at the next appointment?`,
+    `What dietary recommendations can help support ${patientFirstName}'s active conditions?`,
   ]
 
   return (
@@ -246,7 +246,7 @@ function ChatContent() {
         )}
       </div>
 
-      {/* Elder / Patient Switcher for Caregivers */}
+      {/* Patient Switcher for Caregivers */}
       {familyMembers.length > 0 && (
         <div className="flex flex-wrap items-center gap-2 mb-3 bg-surface-container-low/70 p-2.5 rounded-2xl border border-outline-variant/30">
           <span className="text-[12px] font-bold text-deep-navy flex items-center gap-1.5 pl-1">
@@ -286,14 +286,14 @@ function ChatContent() {
       )}
 
       {/* Active Context Banner */}
-      {activeElder && selectedPatientId !== 'me' && (
+      {activePatient && selectedPatientId !== 'me' && (
         <div className="mb-3">
           <BorderBeam size="line" colorVariant="ocean" strength={0.8} theme="light">
             <div className="glass-panel rounded-xl px-3.5 py-2 border border-secondary/30 bg-secondary/5 flex items-center justify-between animate-fadeIn">
               <div className="flex items-center gap-2 text-[12px] text-deep-navy">
                 <Sparkles className="size-3.5 text-secondary shrink-0" />
                 <span>
-                  Consulting AI regarding <strong>{activeElder.display_name}</strong> ({activeElder.relation || 'Connected Elder'}). Verified medical reports, labs & medications are referenced.
+                  Consulting AI regarding <strong>{activePatient.display_name}</strong> ({activePatient.relation || 'Connected Patient'}). Verified medical reports, labs & medications are referenced.
                 </span>
               </div>
               <span className="text-[10px] font-bold tracking-wider uppercase text-secondary bg-secondary/10 px-2 py-0.5 rounded-full shrink-0">
@@ -315,11 +315,11 @@ function ChatContent() {
             <div className="flex flex-col items-center justify-center py-10 sm:py-14 text-center max-w-lg mx-auto">
               <AiOrb size={64} mode="chat" showLabel={false} className="mb-4" />
               <h3 className="text-[17px] font-bold text-deep-navy">
-                {activeElder ? `Ask anything about ${activeElder.display_name}'s health` : t('chat.empty.title')}
+                {activePatient ? `Ask anything about ${activePatient.display_name}'s health` : t('chat.empty.title')}
               </h3>
               <p className="mt-1 text-[13px] text-on-surface-variant leading-relaxed mb-6">
-                {activeElder
-                  ? `AI has analyzed ${activeElder.display_name}'s blood tests, vitals, and medications to answer your caregiving questions.`
+                {activePatient
+                  ? `AI has analyzed ${activePatient.display_name}'s blood tests, vitals, and medications to answer your caregiving questions.`
                   : t('chat.empty.desc')}
               </p>
 
@@ -328,7 +328,7 @@ function ChatContent() {
                 <span className="text-[11px] font-bold uppercase tracking-wider text-secondary block pl-1">
                   Suggested Questions:
                 </span>
-                {(activeElder ? elderSuggestedPrompts : [
+                {(activePatient ? patientSuggestedPrompts : [
                   'Summarize my latest blood test and any flagged values.',
                   'Explain my current medication routine and precautions.',
                   'What questions should I ask my physician at my next visit?',
@@ -371,7 +371,7 @@ function ChatContent() {
                     </div>
                   ) : msg.role === 'assistant' && loading && msg.id === messages[messages.length - 1]?.id ? (
                     <div className="py-1">
-                      <AiOrb mode={activeMode} size={20} statusText={activeElder ? `Analyzing ${elderFirstName}'s records....` : undefined} />
+                      <AiOrb mode={activeMode} size={20} statusText={activePatient ? `Analyzing ${patientFirstName}'s records....` : undefined} />
                     </div>
                   ) : null}
                 </div>
@@ -432,7 +432,7 @@ function ChatContent() {
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={activeElder ? `Ask anything about ${activeElder.display_name}'s health, labs, or meds...` : t('chat.input.placeholder')}
+              placeholder={activePatient ? `Ask anything about ${activePatient.display_name}'s health, labs, or meds...` : t('chat.input.placeholder')}
               className="flex-1 rounded-xl bg-white/70 border border-outline-variant/50 px-3 sm:px-4 py-2.5 text-[13px] sm:text-[14px] outline-none focus:ring-2 focus:ring-secondary/30 focus:border-secondary transition-all min-w-0"
               disabled={loading}
             />

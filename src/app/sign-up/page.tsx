@@ -110,10 +110,10 @@ function SignUpContent() {
           <Logo size="md" className="justify-center" />
           <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary/10 border border-secondary/20">
             <span className="material-symbols-outlined text-secondary text-xs" style={{ fontVariationSettings: "'FILL' 1" }}>vital_signs</span>
-            <span className="text-[11px] font-bold tracking-wider uppercase text-secondary">Elder Care Platform</span>
+            <span className="text-[11px] font-bold tracking-wider uppercase text-secondary">Care Platform</span>
           </div>
-          <h1 className="mt-2 text-2xl font-bold tracking-tight text-deep-navy">Join CareDesk ElderCare</h1>
-          <p className="mt-1 text-[14px] text-on-surface-variant">Connecting seniors and family caregivers with real-time health intelligence</p>
+          <h1 className="mt-2 text-2xl font-bold tracking-tight text-deep-navy">Join CareDesk</h1>
+          <p className="mt-1 text-[14px] text-on-surface-variant">Connecting caregivers and patients with real-time health intelligence</p>
         </div>
 
         <div className="rounded-2xl border border-outline-variant/30 bg-surface-container-lowest p-8 shadow-sm">
@@ -160,9 +160,9 @@ function SignUpContent() {
                     <div className="w-10 h-10 rounded-full bg-secondary/15 flex items-center justify-center mb-2">
                       <Shield className="size-5 text-secondary" />
                     </div>
-                    <span className="text-[13px] font-bold text-deep-navy">Family Caregiver</span>
+                    <span className="text-[13px] font-bold text-deep-navy">Caregiver</span>
                     <span className="text-[11px] text-on-surface-variant leading-tight mt-0.5">
-                      Caring for elderly parents or family
+                      Caring for connected patients
                     </span>
                   </button>
 
@@ -178,7 +178,7 @@ function SignUpContent() {
                     <div className="w-10 h-10 rounded-full bg-electric-blue/20 flex items-center justify-center mb-2">
                       <User className="size-5 text-deep-navy" />
                     </div>
-                    <span className="text-[13px] font-bold text-deep-navy">Senior / Patient</span>
+                    <span className="text-[13px] font-bold text-deep-navy">Patient</span>
                     <span className="text-[11px] text-on-surface-variant leading-tight mt-0.5">
                       Managing my own health & vitals
                     </span>

@@ -288,7 +288,7 @@ function ReportsContent() {
     )
   }
 
-  const activeElder = familyMembers.find(m => m.connected_user_id === selectedPatientId || m.member_id === selectedPatientId)
+  const activePatient = familyMembers.find(m => m.connected_user_id === selectedPatientId || m.member_id === selectedPatientId)
 
   return (
     <div className="p-4 sm:p-5 md:p-8 max-w-[1400px]">
@@ -319,7 +319,7 @@ function ReportsContent() {
         </div>
       </div>
 
-      {/* Elder / Patient Switcher Tabs */}
+      {/* Patient Switcher Tabs */}
       {familyMembers.length > 0 && (
         <div className="mb-6 flex flex-wrap gap-2 bg-surface-container-low/70 p-2 rounded-2xl border border-outline-variant/30">
           <button
@@ -355,14 +355,14 @@ function ReportsContent() {
         </div>
       )}
 
-      {/* Active Elder Banner */}
-      {activeElder && selectedPatientId !== 'me' && (
+      {/* Active Patient Banner */}
+      {activePatient && selectedPatientId !== 'me' && (
         <div className="mb-6 glass-panel rounded-2xl p-4 border border-secondary/30 bg-secondary/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fadeIn">
           <div className="flex items-center gap-2.5">
             <span className="size-2.5 rounded-full bg-emerald-500 animate-pulse" />
             <div>
               <p className="text-[14px] font-bold text-deep-navy">
-                Viewing Medical Reports for {activeElder.display_name} ({activeElder.relation || 'Connected Elder'})
+                Viewing Medical Reports for {activePatient.display_name} ({activePatient.relation || 'Connected Patient'})
               </p>
               <p className="text-[12px] text-on-surface-variant">
                 Full access enabled via Care Circle. All reports are verified and synchronized in real-time.
@@ -370,11 +370,11 @@ function ReportsContent() {
             </div>
           </div>
           <Link
-            href={`/dashboard/chat?patient=${activeElder.connected_user_id || activeElder.member_id}`}
+            href={`/dashboard/chat?patient=${activePatient.connected_user_id || activePatient.member_id}`}
             className="btn-primary-gradient px-4 py-2 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 self-start sm:self-auto shrink-0"
           >
             <MessageSquare className="size-3.5" />
-            <span>Ask AI About {activeElder.display_name?.split(' ')[0]}</span>
+            <span>Ask AI About {activePatient.display_name?.split(' ')[0]}</span>
           </Link>
         </div>
       )}
@@ -418,11 +418,11 @@ function ReportsContent() {
         <div className="glass-panel organic-radius flex flex-col items-center justify-center py-16 border border-white">
           <AiOrb mode="report" size={64} showLabel={false} className="mb-3" />
           <h3 className="mt-2 text-[16px] font-bold text-deep-navy">
-            {activeElder ? `No reports uploaded for ${activeElder.display_name} yet` : t('reports.empty.title')}
+            {activePatient ? `No reports uploaded for ${activePatient.display_name} yet` : t('reports.empty.title')}
           </h3>
           <p className="mt-1 text-[14px] text-on-surface-variant text-center max-w-sm">
-            {activeElder
-              ? 'Click "Upload Document" to add lab sheets, prescription slips, or clinical PDFs for this senior.'
+            {activePatient
+              ? 'Click "Upload Document" to add lab sheets, prescription slips, or clinical PDFs for this patient.'
               : t('reports.empty.desc')}
           </p>
         </div>

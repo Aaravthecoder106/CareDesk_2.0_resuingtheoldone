@@ -334,8 +334,7 @@ function extractTextFromPdfBuffer(buffer: Buffer): string | null {
 }
 
 /**
- * Notify every ACCEPTED family link (either direction)
- * when a new report contains abnormal lab flags.
+ * Notify connected caregiver and patient when a new report contains abnormal lab flags or changes requiring attention.
  */
 async function notifyFamilyOfFindings(
   admin: ReturnType<typeof createAdminSupabaseClient>,
@@ -353,29 +352,45 @@ async function notifyFamilyOfFindings(
     .select('owner_id, member_id')
     .eq('status', 'accepted')
     .or(`owner_id.eq.${patientId},member_id.eq.${patientId}`)
-  if (!links || links.length === 0) return
 
   const { data: patient } = await admin
     .from('users').select('first_name, email').eq('id', patientId).maybeSingle()
-  const who = patient?.first_name || patient?.email || 'A family member'
+  const who = patient?.first_name || patient?.email || 'Patient'
 
   const updates = []
-  if (abnormal.length > 0) updates.push(`${abnormal.length} abnormal lab(s)`)
-  if (newMeds.length > 0) updates.push(`new medication(s)`)
-  if (newConditions.length > 0) updates.push(`new condition(s)`)
+  if (abnormal.length > 0) updates.push(`${abnormal.length} abnormal lab result(s)`)
+  if (newMeds.length > 0) updates.push(`${newMeds.length} new medication(s)`)
+  if (newConditions.length > 0) updates.push(`${newConditions.length} new condition(s)`)
 
-  const body = `${who} has new notable results: ${updates.join(', ')}.`
+  const isCritical = abnormal.some((l) => l.flag?.toLowerCase() === 'critical')
+  const alertTitle = isCritical
+    ? `CRITICAL ALERT: Patient ${who} Needs Immediate Attention`
+    : `AI Attention Alert: Patient ${who}`
 
-  const targets = links
-    .map((l) => (l.owner_id === patientId ? l.member_id : l.owner_id))
-    .filter((id, i, arr) => arr.indexOf(id) === i)
+  const detailsList = abnormal.map((l) => `${l.test_name}: ${l.value ?? ''} ${l.unit ?? ''} (${l.flag?.toUpperCase()})`).join(', ')
+  const body = `AI Attention: Patient ${who} has ${updates.join(', ')}.${detailsList ? ` Flagged: ${detailsList}.` : ''} Please review in Messages.`
 
-  await admin.from('notifications').insert(
-    targets.map((userId) => ({
-      user_id: userId,
-      type: 'health_alert',
-      title: 'Notable health change',
-      body,
-    }))
-  )
+  // Send to connected caregivers
+  if (links && links.length > 0) {
+    const caregiverIds = links
+      .map((l) => (l.owner_id === patientId ? l.member_id : l.owner_id))
+      .filter((id, i, arr) => arr.indexOf(id) === i)
+
+    await admin.from('notifications').insert(
+      caregiverIds.map((caregiverId) => ({
+        user_id: caregiverId,
+        type: isCritical ? 'critical_alert' : 'critical_ai_alert',
+        title: alertTitle,
+        body,
+      }))
+    )
+  }
+
+  // Also notify patient so they can see what needs attention
+  await admin.from('notifications').insert({
+    user_id: patientId,
+    type: isCritical ? 'critical_alert' : 'critical_ai_alert',
+    title: isCritical ? 'Critical Health Finding in Report' : 'AI Attention: New Lab Findings',
+    body: `Your latest report contains ${updates.join(', ')}. Your connected caregiver has also received this alert.`,
+  })
 }

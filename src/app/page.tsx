@@ -94,7 +94,7 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <Logo size="md" />
             <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-primary text-white tracking-wide uppercase">
-              ElderCare
+              Connected Care
             </span>
           </div>
 
@@ -176,17 +176,17 @@ export default function Home() {
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass-panel border border-electric-blue/40 mb-4 sm:mb-6 shadow-sm">
                 <span className="flex size-2 rounded-full bg-emerald-500 animate-pulse" />
                 <span className="text-[11px] sm:text-[12px] font-bold tracking-[0.08em] uppercase text-deep-navy">
-                  Connected Elder Care & Health Intelligence
+                  Connected Caregiver & Patient Health Intelligence
                 </span>
               </div>
 
               <h1 className="text-[30px] leading-[38px] sm:text-[38px] sm:leading-[46px] md:text-[46px] md:leading-[56px] font-extrabold text-deep-navy mb-4 sm:mb-5 tracking-tight">
-                Caring for Aging Loved Ones,<br />
+                Connected Care For Caregivers & Patients,<br />
                 <span className="gradient-text">Connected & Simplified.</span>
               </h1>
 
               <p className="text-[15px] sm:text-[17px] leading-[26px] sm:leading-[30px] text-on-surface-variant mb-6 sm:mb-8 max-w-xl">
-                Bridge the distance between senior parents and family caregivers. Connect in 10 seconds via Care Code, access real-time medical stats & lab trends, and consult our AI assistant with questions tailored specifically to your loved one&apos;s health.
+                Connect caregivers and patients in 10 seconds via Care Code. Access real-time medical stats, track lab trends, and receive AI critical alerts tailored specifically to patient health.
               </p>
 
               {/* Dual Role Signup Pathways */}
@@ -209,14 +209,14 @@ export default function Home() {
                             <Shield className="size-5" />
                           </div>
                           <span className="text-[11px] font-bold text-secondary bg-secondary/10 px-2 py-0.5 rounded-full">
-                            For Families
+                            For Caregivers
                           </span>
                         </div>
                         <h3 className="text-[16px] font-bold text-deep-navy group-hover:text-secondary transition-colors">
                           I am a Caregiver
                         </h3>
                         <p className="text-[13px] text-on-surface-variant mt-1 leading-snug">
-                          Caring for elderly parents or relatives. Track vitals, medications & ask AI about their health.
+                          Caring for connected patients. Track vitals, medications & receive critical AI attention alerts.
                         </p>
                       </div>
                       <div className="mt-4 flex items-center gap-1.5 text-[13px] font-semibold text-secondary">
@@ -225,7 +225,7 @@ export default function Home() {
                       </div>
                     </Link>
 
-                    {/* Role 2: Senior / Patient */}
+                    {/* Role 2: Patient */}
                     <Link
                       href="/sign-up?role=patient"
                       className="group glass-panel rounded-2xl p-4 sm:p-5 border-2 border-outline-variant/40 hover:border-deep-navy transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 flex flex-col justify-between bg-gradient-to-br from-white/90 to-surface-container-low/70"
@@ -236,18 +236,18 @@ export default function Home() {
                             <User className="size-5" />
                           </div>
                           <span className="text-[11px] font-bold text-deep-navy bg-primary/10 px-2 py-0.5 rounded-full">
-                            For Seniors
+                            For Patients
                           </span>
                         </div>
                         <h3 className="text-[16px] font-bold text-deep-navy group-hover:text-primary transition-colors">
-                          I am an Elder / Patient
+                          I am a Patient
                         </h3>
                         <p className="text-[13px] text-on-surface-variant mt-1 leading-snug">
-                          Managing my own health & independence. Easily scan lab reports and share with caregivers.
+                          Managing my own health & vitals. Scan lab reports and connect with your caregiver.
                         </p>
                       </div>
                       <div className="mt-4 flex items-center gap-1.5 text-[13px] font-semibold text-deep-navy">
-                        <span>Join as Senior</span>
+                        <span>Join as Patient</span>
                         <ArrowRight className="size-4 group-hover:translate-x-1 transition-transform" />
                       </div>
                     </Link>
@@ -302,14 +302,14 @@ export default function Home() {
               <Show when="signed-in">
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto mt-2">
                   <Link href="/dashboard" className="btn-primary-gradient text-[15px] sm:text-[16px] px-7 sm:px-9 py-3 sm:py-3.5 rounded-full font-bold flex justify-center items-center gap-2 active:scale-[0.98] transition-transform">
-                    Go to Caregiver & Elder Portal
+                    Go to Dashboard
                     <ArrowRight className="size-5" />
                   </Link>
                 </div>
               </Show>
             </div>
 
-            {/* Hero Right Visual: Connected Elder Care Simulation (5 Cols) */}
+            {/* Hero Right Visual: Connected Care Simulation (5 Cols) */}
             <div className="relative w-full lg:col-span-5 mt-4 lg:mt-0 z-0">
               <div className="absolute inset-0 bg-gradient-to-tr from-secondary/20 via-electric-blue/20 to-primary/10 rounded-[2.5rem] transform rotate-2 blur-2xl opacity-60"></div>
               
@@ -330,7 +330,7 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* Connected Elder Identity Card */}
+                {/* Connected Patient Identity Card */}
                 <div className="flex items-center gap-3.5 p-3 rounded-2xl bg-surface-container-low border border-white/60">
                   <div className="size-12 rounded-full bg-secondary/15 flex items-center justify-center text-deep-navy font-bold text-[16px] border border-secondary/20">
                     MM
@@ -339,7 +339,7 @@ export default function Home() {
                     <div className="flex items-center gap-2">
                       <h4 className="text-[15px] font-bold text-deep-navy truncate">Margaret Miller</h4>
                       <span className="text-[11px] font-semibold text-secondary bg-secondary/10 px-2 py-0.5 rounded-full">
-                        Mother (74)
+                        Patient
                       </span>
                     </div>
                     <p className="text-[12px] text-on-surface-variant flex items-center gap-1.5 mt-0.5">
@@ -378,7 +378,7 @@ export default function Home() {
                   {/* Question from caregiver */}
                   <div className="flex justify-end">
                     <div className="bg-primary text-white text-[12px] px-3.5 py-2 rounded-2xl rounded-tr-none max-w-[85%] shadow-sm">
-                      Are Mom&apos;s blood pressure medications safe with her new cough syrup?
+                      Are the patient&apos;s blood pressure medications safe with her new cough syrup?
                     </div>
                   </div>
 
@@ -414,7 +414,7 @@ export default function Home() {
                 Connect in 10 Seconds Like a Game Invite
               </h2>
               <p className="text-[15px] sm:text-[17px] text-on-surface-variant">
-                No complex paperwork, no bureaucratic authorizations. Seniors and caregivers link with a single room code.
+                No complex paperwork, no bureaucratic authorizations. Patients and caregivers link with a single room code.
               </p>
             </div>
 
@@ -426,7 +426,7 @@ export default function Home() {
                 </div>
                 <h3 className="text-[18px] font-bold text-deep-navy mb-2">Generate Care Code</h3>
                 <p className="text-[14px] text-on-surface-variant leading-relaxed">
-                  Either the caregiver or the senior parent clicks <strong>&ldquo;Generate Code&rdquo;</strong> to produce a friendly 6-digit code like <code className="text-secondary font-bold font-mono">CARE-782</code>.
+                  Either the caregiver or the patient clicks <strong>&ldquo;Generate Code&rdquo;</strong> to produce a friendly 6-digit code like <code className="text-secondary font-bold font-mono">CARE-782</code>.
                 </p>
               </div>
 
@@ -438,7 +438,7 @@ export default function Home() {
                   </div>
                   <h3 className="text-[18px] font-bold text-deep-navy mb-2">Share via WhatsApp or SMS</h3>
                   <p className="text-[14px] text-on-surface-variant leading-relaxed">
-                    Send the code or 1-click link over WhatsApp, SMS, or tell your parent over the phone. The recipient enters the code in their dashboard.
+                    Send the code or 1-click link over WhatsApp, SMS, or share over the phone. The recipient enters the code in their dashboard.
                   </p>
                 </div>
               </BorderBeam>
@@ -450,7 +450,7 @@ export default function Home() {
                 </div>
                 <h3 className="text-[18px] font-bold text-deep-navy mb-2">Instantly Paired & Synced</h3>
                 <p className="text-[14px] text-on-surface-variant leading-relaxed">
-                  Both accounts connect instantly. The caregiver immediately sees lab results, medications, and can ask AI health questions about their parent.
+                  Both accounts connect instantly. The caregiver immediately sees lab results, medications, and can ask AI health questions about their patient.
                 </p>
               </div>
             </div>
@@ -466,10 +466,10 @@ export default function Home() {
                 <span className="text-[11px] font-bold uppercase tracking-wider text-secondary">Caregiver Command Center</span>
               </div>
               <h2 className="text-[26px] sm:text-[34px] leading-[34px] sm:leading-[44px] font-bold text-deep-navy mb-4">
-                Full Visibility Into Your Loved One&apos;s Health From Anywhere
+                Full Visibility Into Patient Health From Anywhere
               </h2>
               <p className="text-[15px] sm:text-[16px] text-on-surface-variant leading-relaxed mb-6">
-                Whether you live across town or across the country, CareDesk ElderCare gives you the answers and peace of mind you need.
+                Whether you live across town or across the country, CareDesk gives you the answers and peace of mind you need.
               </p>
 
               <div className="space-y-4">
@@ -488,8 +488,8 @@ export default function Home() {
                     <CheckCircle2 className="size-4" />
                   </div>
                   <div>
-                    <h4 className="text-[15px] font-bold text-deep-navy">Ask AI Questions About Connected Elders</h4>
-                    <p className="text-[13px] text-on-surface-variant">Consult the AI directly with questions like &ldquo;Is Dad&apos;s glucose improving?&rdquo; or &ldquo;What questions should I ask Mom&apos;s cardiologist?&rdquo; grounded in their exact records.</p>
+                    <h4 className="text-[15px] font-bold text-deep-navy">Ask AI Questions About Connected Patients</h4>
+                    <p className="text-[13px] text-on-surface-variant">Consult the AI directly with questions like &ldquo;Is the patient&apos;s glucose improving?&rdquo; or &ldquo;What questions should I ask the doctor?&rdquo; grounded in exact records.</p>
                   </div>
                 </div>
 
@@ -498,8 +498,8 @@ export default function Home() {
                     <CheckCircle2 className="size-4" />
                   </div>
                   <div>
-                    <h4 className="text-[15px] font-bold text-deep-navy">Care Circle Collaboration</h4>
-                    <p className="text-[13px] text-on-surface-variant">Connect siblings and other family members to the same senior profile so everyone stays aligned without repetitive phone calls.</p>
+                    <h4 className="text-[15px] font-bold text-deep-navy">Connected Care Collaboration</h4>
+                    <p className="text-[13px] text-on-surface-variant">Connect caregivers and patients so everyone stays aligned without repetitive phone calls.</p>
                   </div>
                 </div>
               </div>
@@ -509,7 +509,7 @@ export default function Home() {
                   href="/sign-up?role=caregiver"
                   className="btn-primary-gradient px-6 py-3 rounded-full text-[14px] font-bold inline-flex items-center gap-2"
                 >
-                  Join as Family Caregiver
+                  Join as Caregiver
                   <ArrowRight className="size-4" />
                 </Link>
               </div>
@@ -541,9 +541,9 @@ export default function Home() {
                 <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-deep-navy">
                   <Users className="size-5" />
                 </div>
-                <h4 className="text-[15px] font-bold text-deep-navy">Multi-Elder Switching</h4>
+                <h4 className="text-[15px] font-bold text-deep-navy">Multi-Patient Switching</h4>
                 <p className="text-[13px] text-on-surface-variant leading-relaxed">
-                  Caring for both Mom and Dad? Switch profiles with one click from your Caregiver dashboard.
+                  Caring for multiple patients? Switch profiles with one click from your Caregiver dashboard.
                 </p>
               </div>
 
@@ -553,7 +553,7 @@ export default function Home() {
                 </div>
                 <h4 className="text-[15px] font-bold text-deep-navy">Private & Isolated</h4>
                 <p className="text-[13px] text-on-surface-variant leading-relaxed">
-                  Row-level security ensures medical records and conversations stay strictly within your authorized family circle.
+                  Row-level security ensures medical records and conversations stay strictly within your authorized connections.
                 </p>
               </div>
             </div>
@@ -567,16 +567,16 @@ export default function Home() {
               <div className="flex items-center gap-2">
                 <Logo size="md" light />
                 <span className="text-[11px] font-bold bg-white/10 text-white px-2 py-0.5 rounded-full uppercase">
-                  ElderCare
+                  CareDesk
                 </span>
               </div>
               <p className="text-surface-dim/70 text-[13px]">
-                Connected health intelligence and compassionate caregiving for aging loved ones.
+                Connected health intelligence and continuous care for caregivers and patients.
               </p>
             </div>
             <div className="flex flex-wrap gap-4 sm:gap-6 md:justify-end text-[13px] text-surface-dim/70">
               <Link href="/sign-up?role=caregiver" className="hover:text-white transition-colors">Caregivers</Link>
-              <Link href="/sign-up?role=patient" className="hover:text-white transition-colors">Seniors</Link>
+              <Link href="/sign-up?role=patient" className="hover:text-white transition-colors">Patients</Link>
               <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
               <Link href="/about" className="hover:text-white transition-colors">About Us</Link>
             </div>

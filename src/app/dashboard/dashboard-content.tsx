@@ -13,31 +13,56 @@ import {
   ArrowRight,
   Heart,
   Activity,
+  AlertTriangle,
+  Mail,
+  CheckCircle2,
 } from 'lucide-react'
 import Link from 'next/link'
+import type { CriticalAttentionAlert } from '@/lib/data/messages'
 
 interface DashboardContentProps {
   firstName?: string | null
   hasPatient: boolean
+  userRole?: 'caregiver' | 'patient'
+  criticalAlerts?: CriticalAttentionAlert[]
 }
 
-export function DashboardContent({ firstName, hasPatient }: DashboardContentProps) {
+export function DashboardContent({
+  firstName,
+  hasPatient,
+  userRole = 'caregiver',
+  criticalAlerts = [],
+}: DashboardContentProps) {
   const { t } = useLanguage()
+  const isCaregiver = userRole === 'caregiver'
 
   const quickActions = [
     {
-      icon: Users,
-      title: 'Elder Care Circle',
-      description: 'Pair with senior parents or caregivers via instant Care Code',
+      icon: isCaregiver ? Users : Heart,
+      title: isCaregiver ? 'Connect Patients' : 'Connect Caregiver',
+      description: isCaregiver
+        ? 'Connect your patients you want to care via instant Care Code'
+        : 'Connect your caregiver via instant Care Code',
       href: '/dashboard/family',
       color: 'text-secondary',
       bg: 'bg-secondary/10',
-      badge: 'Game Pairing',
+      badge: isCaregiver ? 'Multi-Patient' : '1 Caregiver',
+    },
+    {
+      icon: Mail,
+      title: 'Care Messages',
+      description: 'Review critical AI attention alerts and direct care messages',
+      href: '/dashboard/messages',
+      color: 'text-rose-600',
+      bg: 'bg-rose-50',
+      badge: `${criticalAlerts.length} Alerts`,
     },
     {
       icon: MessageSquare,
       title: 'AI Health Consult',
-      description: 'Ask clinical and caregiving questions about connected elders',
+      description: isCaregiver
+        ? 'Ask clinical and care questions about connected patients'
+        : 'Ask AI questions about your lab tests and prescriptions',
       href: '/dashboard/chat',
       color: 'text-electric-blue',
       bg: 'bg-electric-blue/10',
@@ -65,12 +90,12 @@ export function DashboardContent({ firstName, hasPatient }: DashboardContentProp
 
   return (
     <div className="p-4 sm:p-5 md:p-8 max-w-[1400px]">
-      {/* Header with ElderCare branding */}
+      {/* Header */}
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[11px] font-bold bg-primary text-white tracking-wide uppercase">
-              CareDesk ElderCare
+              {isCaregiver ? 'Caregiver Command Hub' : 'Patient Health Profile'}
             </span>
             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800">
               <span className="size-1.5 rounded-full bg-emerald-600 animate-pulse" />
@@ -81,7 +106,9 @@ export function DashboardContent({ firstName, hasPatient }: DashboardContentProp
             {t('dashboard.welcome')}{firstName ? `, ${firstName}` : ''}
           </h1>
           <p className="mt-1 text-[13px] sm:text-[14px] text-on-surface-variant">
-            Your connected elder health command center. Review live vitals, shared medical records, and AI care recommendations.
+            {isCaregiver
+              ? 'Your connected caregiver health command center. Review live vitals, shared medical records, and AI care recommendations.'
+              : 'Your health records and vital biomarker trends. Connected with your caregiver for continuous care.'}
           </p>
         </div>
 
@@ -94,7 +121,93 @@ export function DashboardContent({ firstName, hasPatient }: DashboardContentProp
         </Link>
       </div>
 
-      {/* Featured Elder Care Banner */}
+      {/* CRITICAL MESSAGE BOX IN CAREGIVER */}
+      {isCaregiver && (
+        <div className="mb-8">
+          <div className="rounded-2xl border border-rose-200/90 bg-gradient-to-r from-rose-50/70 via-white to-amber-50/40 p-5 sm:p-6 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <AlertTriangle className="size-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-[17px] font-bold text-deep-navy">Critical AI Attention Alerts</h2>
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200">
+                      Caregiver Attention Box
+                    </span>
+                  </div>
+                  <p className="text-[12px] sm:text-[13px] text-on-surface-variant">
+                    When AI identifies abnormal labs or conditions requiring clinical attention, automated alerts are sent here.
+                  </p>
+                </div>
+              </div>
+
+              <Link
+                href="/dashboard/messages"
+                className="self-start sm:self-auto px-3.5 py-1.5 rounded-xl bg-white border border-rose-200 text-rose-700 hover:bg-rose-50 text-[12px] font-bold inline-flex items-center gap-1.5 shadow-2xs"
+              >
+                <span>Open All Messages</span>
+                <ArrowRight className="size-3.5" />
+              </Link>
+            </div>
+
+            {criticalAlerts.length === 0 ? (
+              <div className="rounded-xl border border-emerald-200/80 bg-emerald-50/50 p-4 flex items-center gap-3">
+                <CheckCircle2 className="size-5 text-emerald-600 shrink-0" />
+                <div className="text-[13px] text-emerald-900">
+                  <strong>Normal status:</strong> All connected patient biomarkers are within expected limits. AI real-time monitoring is active.
+                </div>
+              </div>
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {criticalAlerts.slice(0, 3).map((alert) => (
+                  <div
+                    key={alert.id}
+                    className="rounded-xl border border-rose-200 bg-white p-3.5 shadow-2xs flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-rose-100 text-rose-700">
+                          {alert.severity === 'critical' ? 'Critical' : 'Attention'}
+                        </span>
+                        <span className="text-[11px] font-semibold text-deep-navy">
+                          Patient: {alert.patientName}
+                        </span>
+                      </div>
+                      <h4 className="text-[13px] font-bold text-deep-navy line-clamp-1 mb-1">
+                        {alert.title}
+                      </h4>
+                      <p className="text-[12px] text-on-surface-variant line-clamp-2 mb-2 leading-relaxed">
+                        {alert.message}
+                      </p>
+                    </div>
+
+                    <div className="pt-2 border-t border-outline-variant/20 flex items-center justify-between text-[11px]">
+                      {alert.testName ? (
+                        <span className="font-mono text-rose-600 font-bold">
+                          {alert.testName}: {alert.value ?? ''} {alert.unit ?? ''}
+                        </span>
+                      ) : (
+                        <span className="text-on-surface-variant">AI Alert</span>
+                      )}
+                      <Link
+                        href={`/dashboard/chat?patient=${alert.patientId}`}
+                        className="font-bold text-primary hover:underline inline-flex items-center gap-1"
+                      >
+                        <span>Ask AI</span>
+                        <ArrowRight className="size-3" />
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Featured Pairing Banner */}
       <div className="mb-8">
         <BorderBeam size="md" colorVariant="ocean" strength={0.7} theme="light">
           <div className="glass-panel-strong rounded-2xl p-5 sm:p-6 border border-electric-blue/30 bg-gradient-to-r from-secondary/10 via-white/80 to-electric-blue/10 shadow-sm relative overflow-hidden">
@@ -105,10 +218,10 @@ export function DashboardContent({ firstName, hasPatient }: DashboardContentProp
                   <span>Instant Game-Style Invite & Connect</span>
                 </div>
                 <h2 className="text-[17px] sm:text-[19px] font-bold text-deep-navy">
-                  Keep Aging Parents & Family Caregivers In Complete Sync
+                  Keep Caregivers & Patients In Complete Sync
                 </h2>
                 <p className="text-[13px] sm:text-[14px] text-on-surface-variant leading-relaxed">
-                  Generate a friendly 6-character Care Code (e.g. <code className="font-mono font-bold text-deep-navy">CARE-782</code>) to connect elders and caregivers in 10 seconds. Unlocks shared blood panels, prescription alerts, and AI health consults.
+                  Generate a friendly 6-character Care Code (e.g. <code className="font-mono font-bold text-deep-navy">CARE-782</code>) to connect caregivers and patients in 10 seconds. Unlocks shared blood panels, prescription alerts, and AI health consults.
                 </p>
               </div>
 
@@ -118,7 +231,7 @@ export function DashboardContent({ firstName, hasPatient }: DashboardContentProp
                   className="bg-primary text-white hover:bg-primary/90 px-4 py-2.5 rounded-xl text-[13px] font-bold transition-all inline-flex items-center gap-2 shadow-sm"
                 >
                   <Users className="size-4" />
-                  <span>Open Care Circle</span>
+                  <span>{isCaregiver ? 'Connect Patients' : 'Connect Caregiver'}</span>
                 </Link>
                 <Link
                   href="/dashboard/chat"
@@ -134,10 +247,10 @@ export function DashboardContent({ firstName, hasPatient }: DashboardContentProp
       </div>
 
       {/* Quick Actions Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {quickActions.map((action) => (
           <Link key={action.href} href={action.href} className="block group">
-            <div className="glass-panel organic-radius p-5 sm:p-6 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg active:scale-[0.98] active:ring-2 active:ring-secondary/40 cursor-pointer h-full select-none group-hover:border-secondary/30 flex flex-col justify-between">
+            <div className="glass-panel organic-radius p-5 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg active:scale-[0.98] active:ring-2 active:ring-secondary/40 cursor-pointer h-full select-none group-hover:border-secondary/30 flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <div className={`w-12 h-12 rounded-2xl ${action.bg} flex items-center justify-center transition-transform duration-200 group-hover:scale-110`}>
@@ -147,14 +260,14 @@ export function DashboardContent({ firstName, hasPatient }: DashboardContentProp
                     {action.badge}
                   </span>
                 </div>
-                <h3 className="text-[16px] font-bold text-deep-navy mb-1.5">{action.title}</h3>
-                <p className="text-[13px] text-on-surface-variant leading-[20px]">
+                <h3 className="text-[15px] font-bold text-deep-navy mb-1.5">{action.title}</h3>
+                <p className="text-[12px] text-on-surface-variant leading-[19px]">
                   {action.description}
                 </p>
               </div>
 
               <div className="mt-4 pt-3 border-t border-outline-variant/20 flex items-center gap-1 text-[12px] font-semibold text-secondary group-hover:translate-x-1 transition-transform">
-                <span>Access Feature</span>
+                <span>Access</span>
                 <ArrowRight className="size-3.5" />
               </div>
             </div>
@@ -176,7 +289,7 @@ export function DashboardContent({ firstName, hasPatient }: DashboardContentProp
         </div>
       )}
 
-      {/* Security & HIPAA Compliance Badge */}
+      {/* Security Compliance Badge */}
       <div className="mt-8 glass-panel rounded-2xl p-5 flex items-center gap-4 border border-white">
         <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
           <Shield className="size-6 text-primary" />
@@ -184,7 +297,7 @@ export function DashboardContent({ firstName, hasPatient }: DashboardContentProp
         <div>
           <h3 className="text-[15px] font-bold text-deep-navy">Private, Secure & Protected</h3>
           <p className="text-[13px] text-on-surface-variant">
-            Row-level encryption protects all senior health files and caregiver communications. Data is only accessible to authorized Care Circle members.
+            Row-level encryption protects all patient health files and caregiver communications. Data is only accessible to authorized connected caregivers and patients.
           </p>
         </div>
       </div>

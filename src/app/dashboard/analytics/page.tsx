@@ -126,7 +126,7 @@ function AnalyticsContent() {
         <div>
           <h1 className="text-[22px] sm:text-[24px] font-bold text-deep-navy">Health Analytics & Biomarkers</h1>
           <p className="mt-1 text-[13px] sm:text-[14px] text-on-surface-variant">
-            Interactive biomarker tracking, medication adherence, and health trends for you and connected elders.
+            Interactive biomarker tracking, medication adherence, and health trends for you and connected patients.
           </p>
         </div>
         {viewing === 'me' && (
@@ -141,7 +141,7 @@ function AnalyticsContent() {
         )}
       </div>
 
-      {/* Family / Elder Switcher Tabs */}
+      {/* Patient Switcher Tabs */}
       {family.length > 0 && (
         <div className="mb-6 flex flex-wrap gap-2 bg-surface-container-low/70 p-2 rounded-2xl border border-outline-variant/30">
           <button
@@ -166,13 +166,13 @@ function AnalyticsContent() {
               }`}
             >
               <Heart className="size-3.5" />
-              <span>{f.name} (Elder Stats)</span>
+              <span>{f.name} (Patient Stats)</span>
             </button>
           ))}
         </div>
       )}
 
-      {/* Active Elder Banner if Caregiver is viewing elder */}
+      {/* Active Patient Banner */}
       {viewing !== 'me' && viewingFamily && (
         <div className="mb-6 glass-panel rounded-2xl p-4 border border-secondary/30 bg-secondary/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fadeIn">
           <div className="flex items-center gap-2.5">

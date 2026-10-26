@@ -38,7 +38,7 @@ export async function getFamilyMembers(): Promise<FamilyMemberWithDetails[]> {
     (users || []).map((u) => [
       u.id,
       {
-        name: [u.first_name, u.last_name].filter(Boolean).join(' ') || u.email || 'Care Circle Member',
+        name: [u.first_name, u.last_name].filter(Boolean).join(' ') || u.email || 'Connected Member',
         email: u.email,
       },
     ])
@@ -74,7 +74,7 @@ export async function getPendingInvites(): Promise<Tables<'family_invites'>[]> {
 
 /**
  * Generate a clean game-style Care Code (e.g. CARE-7492).
- * Fast, human-friendly for seniors and caregivers alike.
+ * Fast, human-friendly for caregivers and patients.
  */
 export async function createFamilyInvite(
   email?: string,
@@ -84,6 +84,19 @@ export async function createFamilyInvite(
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { ok: false, error: 'Not authenticated' }
+
+    // Patient rule: patient can only connect 1 caregiver
+    const userRole = (user.user_metadata?.elder_care_role || user.user_metadata?.role || 'caregiver') as string
+    if (userRole === 'patient') {
+      const { data: existing } = await supabase
+        .from('family_members')
+        .select('id')
+        .eq('status', 'accepted')
+        .or(`owner_id.eq.${user.id},member_id.eq.${user.id}`)
+      if (existing && existing.length >= 1) {
+        return { ok: false, error: 'Patients can only connect to 1 caregiver. Disconnect your existing caregiver first to connect a new one.' }
+      }
+    }
 
     // Generate game-style room code (e.g. CARE-4891)
     const randomDigits = Math.floor(1000 + Math.random() * 9000)
@@ -96,7 +109,7 @@ export async function createFamilyInvite(
       .insert({
         owner_id: user.id,
         email: inviteEmail,
-        relation: relation || 'Care Circle Member',
+        relation: relation || (userRole === 'patient' ? 'Caregiver' : 'Patient'),
         token,
         status: 'pending',
       })
@@ -109,7 +122,7 @@ export async function createFamilyInvite(
         .insert({
           owner_id: user.id,
           email: inviteEmail,
-          relation: relation || 'Care Circle Member',
+          relation: relation || (userRole === 'patient' ? 'Caregiver' : 'Patient'),
           token,
           status: 'pending',
         })
@@ -171,6 +184,33 @@ export async function acceptFamilyInvite(
       return { ok: false, error: 'You cannot connect with your own Care Code.' }
     }
 
+    // Patient rule: patient can only connect 1 caregiver
+    const userRole = (user.user_metadata?.elder_care_role || user.user_metadata?.role || 'caregiver') as string
+    if (userRole === 'patient') {
+      const { data: existing } = await admin
+        .from('family_members')
+        .select('id')
+        .eq('status', 'accepted')
+        .or(`owner_id.eq.${user.id},member_id.eq.${user.id}`)
+      if (existing && existing.length >= 1) {
+        return { ok: false, error: 'Patients can only connect to 1 caregiver. Disconnect your existing caregiver first to connect a new one.' }
+      }
+    }
+
+    // Check if the code creator is a patient who already has 1 caregiver
+    const { data: ownerUserAuth } = await admin.auth.admin.getUserById(invite.owner_id)
+    const ownerRole = ownerUserAuth?.user?.user_metadata?.elder_care_role || ownerUserAuth?.user?.user_metadata?.role
+    if (ownerRole === 'patient') {
+      const { data: ownerConnections } = await admin
+        .from('family_members')
+        .select('id')
+        .eq('status', 'accepted')
+        .or(`owner_id.eq.${invite.owner_id},member_id.eq.${invite.owner_id}`)
+      if (ownerConnections && ownerConnections.length >= 1) {
+        return { ok: false, error: 'This patient already has a connected caregiver.' }
+      }
+    }
+
     // 2. Link them directly as accepted (instant game-invite pairing)
     const { error: linkErr } = await admin
       .from('family_members')
@@ -178,7 +218,7 @@ export async function acceptFamilyInvite(
         {
           owner_id: invite.owner_id,
           member_id: user.id,
-          relation: invite.relation,
+          relation: invite.relation || (userRole === 'patient' ? 'Caregiver' : 'Patient'),
           status: 'accepted',
         },
         { onConflict: 'owner_id,member_id' }
@@ -195,19 +235,19 @@ export async function acceptFamilyInvite(
       .eq('id', invite.id)
 
     // 4. Create celebratory mutual notifications
-    const acceptorName = user.user_metadata?.full_name || user.email || 'A loved one'
+    const acceptorName = user.user_metadata?.full_name || user.email || (userRole === 'patient' ? 'Patient' : 'Caregiver')
     await admin.from('notifications').insert([
       {
         user_id: invite.owner_id,
         type: 'family_confirmed',
-        title: 'Connected to Care Circle',
-        body: `${acceptorName} used Care Code ${invite.token} and joined your Care Circle. Shared medical stats and AI health consults are now active!`,
+        title: 'Connection Established',
+        body: `${acceptorName} used Care Code ${invite.token} and is now connected with you. Shared medical stats, AI health consults, and care messages are now active!`,
       },
       {
         user_id: user.id,
         type: 'family_confirmed',
-        title: 'Connected to Care Circle',
-        body: `You are now paired with your loved one. Shared medical stats and AI health consults are now active!`,
+        title: 'Connection Established',
+        body: `You are now paired. Shared medical records, AI vitals monitoring, and care messages are now active!`,
       },
     ])
 

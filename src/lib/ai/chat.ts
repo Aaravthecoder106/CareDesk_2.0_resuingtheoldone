@@ -38,7 +38,7 @@ export async function chatWithAI(
 }
 
 /**
- * Build the medical context for a user or connected elder, then reuse it for prompt construction.
+ * Build the medical context for a user or connected patient, then reuse it for prompt construction.
  */
 async function buildChatContext(targetUserId: string, callerUserId: string) {
   const isCaregiverView = targetUserId !== callerUserId
@@ -66,7 +66,7 @@ async function buildChatContext(targetUserId: string, callerUserId: string) {
       .eq('id', targetUserId)
       .maybeSingle()
 
-    patientName = [patientUser?.first_name, patientUser?.last_name].filter(Boolean).join(' ') || patientUser?.email || 'Connected Elder'
+    patientName = [patientUser?.first_name, patientUser?.last_name].filter(Boolean).join(' ') || patientUser?.email || 'Connected Patient'
     relationNote = link.relation ? ` (${link.relation})` : ''
   }
 
@@ -98,7 +98,7 @@ async function buildChatContext(targetUserId: string, callerUserId: string) {
   ])
 
   let context = isCaregiverView
-    ? `You are CareDesk ElderCare AI, an empathetic, highly knowledgeable geriatric health assistant consulting with a family caregiver. You are analyzing the verified medical data for ${patientName}${relationNote}. Answer questions clearly, accurately, and compassionately with practical caregiving guidance, potential drug interactions, and dietary/lifestyle tips.
+    ? `You are CareDesk AI, an empathetic, highly knowledgeable health assistant consulting with a caregiver. You are analyzing the verified medical data for ${patientName}${relationNote}. Answer questions clearly, accurately, and compassionately with practical caregiving guidance, potential drug interactions, and dietary/lifestyle tips.
 
 Formatting & Visual Styling Instructions:
 Use rich Markdown formatting to make your responses structured, professional, and easily readable for caregivers:
