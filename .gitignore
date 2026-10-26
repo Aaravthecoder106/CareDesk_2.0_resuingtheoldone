@@ -44,6 +44,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# video assets
+/video-assets/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
