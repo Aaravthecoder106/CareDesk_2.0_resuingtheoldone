@@ -37,6 +37,13 @@ export async function updateSession(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname
 
+  // Safeguard: If Supabase redirects to site root with ?code=..., forward to auth callback
+  if (request.nextUrl.searchParams.has('code') && !pathname.startsWith('/api/auth')) {
+    const callbackUrl = request.nextUrl.clone()
+    callbackUrl.pathname = '/api/auth/callback'
+    return NextResponse.redirect(callbackUrl)
+  }
+
   const isPublicRoute =
     pathname === '/' ||
     pathname.startsWith('/sign-in') ||
