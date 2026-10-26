@@ -24,8 +24,8 @@ export const env = createEnv({
    * MUST be prefixed with `NEXT_PUBLIC_`.
    */
   client: {
-    NEXT_PUBLIC_SUPABASE_URL: z.string().url().default('https://placeholder.supabase.co'),
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1).default('placeholder'),
+    NEXT_PUBLIC_SUPABASE_URL: z.string().url().default('https://cjunddxfqxlryobvnoyh.supabase.co'),
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1).default('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqdW5kZHhmcXhscnlvYnZub3loIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyOTEzNDIsImV4cCI6MjA5OTg2NzM0Mn0.etYPoZdwnEbFW-UXdknSqXlmHL1XqLXt6916l_XFG4I'),
   },
 
   /*
