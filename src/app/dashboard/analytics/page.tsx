@@ -3,10 +3,11 @@
 import { useState, useEffect, Suspense } from 'react'
 import { Button } from '@/components/ui/button'
 import { useLanguage } from '@/lib/i18n/language-context'
-import { BarChart3, RefreshCw, Loader2, TrendingUp, Pill, AlertCircle, FileText, MessageSquare, Sparkles, User, Heart } from 'lucide-react'
+import { BarChart3, RefreshCw, Loader2, TrendingUp, Pill, AlertCircle, FileText, MessageSquare, Sparkles, User, Heart, Users, FolderOpen } from 'lucide-react'
 import { AiOrb } from '@/components/ai-orb'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
+import { useUser } from '@/components/auth-context'
 import {
   BarChart,
   Bar,
@@ -41,6 +42,8 @@ const COLORS = ['#0059bb', '#00E0FF', '#a9c7ff', '#002b5b']
 
 function AnalyticsContent() {
   const { t } = useLanguage()
+  const { user } = useUser()
+  const isCaregiver = user?.role === 'caregiver' || user?.user_metadata?.elder_care_role === 'caregiver'
   const searchParams = useSearchParams()
   const viewParam = searchParams.get('view') || 'me'
 
@@ -52,7 +55,7 @@ function AnalyticsContent() {
 
   useEffect(() => {
     fetchAnalytics()
-  }, [])
+  }, [isCaregiver])
 
   useEffect(() => {
     if (viewParam && viewParam !== viewing) {
@@ -66,7 +69,11 @@ function AnalyticsContent() {
       const res = await fetch('/api/analytics/data')
       const json = await res.json()
       setOwnData(json.data || null)
-      setFamily(json.family || [])
+      const fam = json.family || []
+      setFamily(fam)
+      if (isCaregiver && fam.length > 0 && (viewing === 'me' || !viewing)) {
+        setViewing(fam[0].user_id)
+      }
     } catch {
       console.error('Failed to fetch analytics')
     }
@@ -124,12 +131,16 @@ function AnalyticsContent() {
       {/* Header */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-[22px] sm:text-[24px] font-bold text-deep-navy">Health Analytics & Biomarkers</h1>
+          <h1 className="text-[22px] sm:text-[24px] font-bold text-deep-navy">
+            {isCaregiver ? 'Patient Medical Stats & Biomarkers' : 'Health Analytics & Biomarkers'}
+          </h1>
           <p className="mt-1 text-[13px] sm:text-[14px] text-on-surface-variant">
-            Interactive biomarker tracking, medication adherence, and health trends for you and connected patients.
+            {isCaregiver
+              ? 'Interactive biomarker tracking, vital trends, and lab results for your connected patients.'
+              : 'Interactive biomarker tracking, medication adherence, and health trends for you and connected patients.'}
           </p>
         </div>
-        {viewing === 'me' && (
+        {!isCaregiver && viewing === 'me' && (
           <Button onClick={handleRegenerate} disabled={regenerating} variant="outline" className="w-full sm:w-auto border-outline-variant/50 hover:bg-surface-container">
             {regenerating ? (
               <Loader2 className="mr-2 size-4 animate-spin" />
@@ -141,20 +152,42 @@ function AnalyticsContent() {
         )}
       </div>
 
+      {/* If caregiver has no connected patients */}
+      {isCaregiver && family.length === 0 && (
+        <div className="glass-panel organic-radius p-8 text-center max-w-lg mx-auto my-10 border border-white">
+          <div className="size-14 rounded-full bg-secondary/10 flex items-center justify-center text-secondary mx-auto mb-3">
+            <BarChart3 className="size-7" />
+          </div>
+          <h3 className="text-[17px] font-bold text-deep-navy">No Connected Patients Yet</h3>
+          <p className="mt-1.5 text-[13px] text-on-surface-variant leading-relaxed">
+            As a caregiver, you monitor the medical stats, glucose, BP, and vital trends of your connected patients. Connect your patients first to view their health metrics.
+          </p>
+          <Link
+            href="/dashboard/family"
+            className="mt-4 btn-primary-gradient px-4 py-2 rounded-xl text-[13px] font-bold inline-flex items-center gap-2"
+          >
+            <Users className="size-4" />
+            <span>Connect Patients</span>
+          </Link>
+        </div>
+      )}
+
       {/* Patient Switcher Tabs */}
       {family.length > 0 && (
         <div className="mb-6 flex flex-wrap gap-2 bg-surface-container-low/70 p-2 rounded-2xl border border-outline-variant/30">
-          <button
-            onClick={() => setViewing('me')}
-            className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[13px] font-semibold transition-all ${
-              viewing === 'me'
-                ? 'bg-primary text-white shadow-sm ring-1 ring-secondary/50'
-                : 'bg-white text-on-surface-variant hover:bg-white/80 border border-outline-variant/40'
-            }`}
-          >
-            <User className="size-3.5" />
-            <span>My Analytics</span>
-          </button>
+          {!isCaregiver && (
+            <button
+              onClick={() => setViewing('me')}
+              className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[13px] font-semibold transition-all ${
+                viewing === 'me'
+                  ? 'bg-primary text-white shadow-sm ring-1 ring-secondary/50'
+                  : 'bg-white text-on-surface-variant hover:bg-white/80 border border-outline-variant/40'
+              }`}
+            >
+              <User className="size-3.5" />
+              <span>My Analytics</span>
+            </button>
+          )}
           {family.map((f) => (
             <button
               key={f.user_id}
@@ -166,7 +199,7 @@ function AnalyticsContent() {
               }`}
             >
               <Heart className="size-3.5" />
-              <span>{f.name} (Patient Stats)</span>
+              <span>{f.name}</span>
             </button>
           ))}
         </div>
@@ -186,13 +219,22 @@ function AnalyticsContent() {
               </p>
             </div>
           </div>
-          <Link
-            href={`/dashboard/chat?patient=${viewingFamily.user_id}`}
-            className="btn-primary-gradient px-4 py-2 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 self-start sm:self-auto shrink-0"
-          >
-            <MessageSquare className="size-3.5" />
-            <span>Ask AI About {viewingFamily.name.split(' ')[0]}</span>
-          </Link>
+          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+            <Link
+              href={`/dashboard/chat?patient=${viewingFamily.user_id}`}
+              className="btn-primary-gradient px-3.5 py-1.5 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5"
+            >
+              <MessageSquare className="size-3.5" />
+              <span>Ask AI About {viewingFamily.name.split(' ')[0]}</span>
+            </Link>
+            <Link
+              href={`/dashboard/reports?patientId=${viewingFamily.user_id}`}
+              className="bg-white hover:bg-white/90 text-deep-navy border border-outline-variant/50 px-3.5 py-1.5 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5"
+            >
+              <FolderOpen className="size-3.5 text-secondary" />
+              <span>Reports</span>
+            </Link>
+          </div>
         </div>
       )}
 

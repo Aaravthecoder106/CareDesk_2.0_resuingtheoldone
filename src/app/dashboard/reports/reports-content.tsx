@@ -7,6 +7,7 @@ import { FolderOpen, Upload, Trash2, RefreshCw, FileText, Loader2, Lock, Eye, Us
 import { AiOrb } from '@/components/ai-orb'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
+import { useUser } from '@/components/auth-context'
 
 interface Report {
   id: string
@@ -39,6 +40,8 @@ const PRESIGN_THRESHOLD = 3 * 1024 * 1024 // 3 MB
 
 function ReportsContent() {
   const { t } = useLanguage()
+  const { user } = useUser()
+  const isCaregiver = user?.role === 'caregiver' || user?.user_metadata?.elder_care_role === 'caregiver'
   const searchParams = useSearchParams()
   const initialPatient = searchParams.get('patientId') || 'me'
 
@@ -73,7 +76,7 @@ function ReportsContent() {
       }
     })()
     fetchFamily()
-  }, [])
+  }, [isCaregiver])
 
   useEffect(() => {
     if (initialPatient && initialPatient !== selectedPatientId) {
@@ -88,6 +91,10 @@ function ReportsContent() {
         const data = await res.json()
         const accepted = (data.members || []).filter((m: FamilyMember) => m.status === 'accepted')
         setFamilyMembers(accepted)
+        if (isCaregiver && accepted.length > 0 && (selectedPatientId === 'me' || !selectedPatientId)) {
+          const firstTargetId = accepted[0].connected_user_id || accepted[0].member_id
+          setSelectedPatientId(firstTargetId)
+        }
       }
     } catch (e) {
       console.error('Failed to load family:', e)
@@ -295,44 +302,72 @@ function ReportsContent() {
       {/* Header */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-[22px] sm:text-[24px] font-bold text-deep-navy">Medical Report Library</h1>
+          <h1 className="text-[22px] sm:text-[24px] font-bold text-deep-navy">
+            {isCaregiver ? 'Patient Medical Reports' : 'Medical Report Library'}
+          </h1>
           <p className="mt-1 text-[13px] sm:text-[14px] text-on-surface-variant">
-            Upload, analyze, and review medical documents, blood panels, and clinical histories.
+            {isCaregiver
+              ? 'Review verified medical records, blood panels, and clinical histories for your connected patients.'
+              : 'Upload, analyze, and review medical documents, blood panels, and clinical histories.'}
           </p>
         </div>
-        <div className="shrink-0">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*,.pdf"
-            onChange={handleUpload}
-            className="hidden"
-          />
-          <Button onClick={() => fileInputRef.current?.click()} disabled={uploading} className="btn-primary-gradient w-full sm:w-auto">
-            {uploading ? (
-              <Loader2 className="mr-2 size-4 animate-spin" />
-            ) : (
-              <Upload className="mr-2 size-4" />
-            )}
-            {uploading && uploadProgress ? uploadProgress : 'Upload Document'}
-          </Button>
-        </div>
+        {!isCaregiver && (
+          <div className="shrink-0">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,.pdf"
+              onChange={handleUpload}
+              className="hidden"
+            />
+            <Button onClick={() => fileInputRef.current?.click()} disabled={uploading} className="btn-primary-gradient w-full sm:w-auto">
+              {uploading ? (
+                <Loader2 className="mr-2 size-4 animate-spin" />
+              ) : (
+                <Upload className="mr-2 size-4" />
+              )}
+              {uploading && uploadProgress ? uploadProgress : 'Upload Document'}
+            </Button>
+          </div>
+        )}
       </div>
+
+      {/* If caregiver has no connected patients */}
+      {isCaregiver && familyMembers.length === 0 && (
+        <div className="glass-panel organic-radius p-8 text-center max-w-lg mx-auto my-10 border border-white">
+          <div className="size-14 rounded-full bg-secondary/10 flex items-center justify-center text-secondary mx-auto mb-3">
+            <FolderOpen className="size-7" />
+          </div>
+          <h3 className="text-[17px] font-bold text-deep-navy">No Connected Patients Yet</h3>
+          <p className="mt-1.5 text-[13px] text-on-surface-variant leading-relaxed">
+            As a caregiver, you monitor the medical reports and lab records uploaded by your connected patients. Connect your patients first to view their shared medical reports.
+          </p>
+          <Link
+            href="/dashboard/family"
+            className="mt-4 btn-primary-gradient px-4 py-2 rounded-xl text-[13px] font-bold inline-flex items-center gap-2"
+          >
+            <Users className="size-4" />
+            <span>Connect Patients</span>
+          </Link>
+        </div>
+      )}
 
       {/* Patient Switcher Tabs */}
       {familyMembers.length > 0 && (
         <div className="mb-6 flex flex-wrap gap-2 bg-surface-container-low/70 p-2 rounded-2xl border border-outline-variant/30">
-          <button
-            onClick={() => setSelectedPatientId('me')}
-            className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[13px] font-semibold transition-all ${
-              selectedPatientId === 'me'
-                ? 'bg-primary text-white shadow-sm ring-1 ring-secondary/50'
-                : 'bg-white text-on-surface-variant hover:bg-white/80 border border-outline-variant/40'
-            }`}
-          >
-            <User className="size-3.5" />
-            <span>My Reports</span>
-          </button>
+          {!isCaregiver && (
+            <button
+              onClick={() => setSelectedPatientId('me')}
+              className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[13px] font-semibold transition-all ${
+                selectedPatientId === 'me'
+                  ? 'bg-primary text-white shadow-sm ring-1 ring-secondary/50'
+                  : 'bg-white text-on-surface-variant hover:bg-white/80 border border-outline-variant/40'
+              }`}
+            >
+              <User className="size-3.5" />
+              <span>My Reports</span>
+            </button>
+          )}
           {familyMembers.map((m) => {
             const memberTargetId = m.connected_user_id || m.member_id
             const isSelected = selectedPatientId === memberTargetId

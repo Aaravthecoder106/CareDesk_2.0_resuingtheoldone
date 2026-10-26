@@ -19,12 +19,14 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import type { CriticalAttentionAlert } from '@/lib/data/messages'
+import type { FamilyMemberWithDetails } from '@/lib/data/family'
 
 interface DashboardContentProps {
   firstName?: string | null
   hasPatient: boolean
   userRole?: 'caregiver' | 'patient'
   criticalAlerts?: CriticalAttentionAlert[]
+  connectedPatients?: FamilyMemberWithDetails[]
 }
 
 export function DashboardContent({
@@ -32,61 +34,88 @@ export function DashboardContent({
   hasPatient,
   userRole = 'caregiver',
   criticalAlerts = [],
+  connectedPatients = [],
 }: DashboardContentProps) {
   const { t } = useLanguage()
   const isCaregiver = userRole === 'caregiver'
 
-  const quickActions = [
-    {
-      icon: isCaregiver ? Users : Heart,
-      title: isCaregiver ? 'Connect Patients' : 'Connect Caregiver',
-      description: isCaregiver
-        ? 'Connect your patients you want to care via instant Care Code'
-        : 'Connect your caregiver via instant Care Code',
-      href: '/dashboard/family',
-      color: 'text-secondary',
-      bg: 'bg-secondary/10',
-      badge: isCaregiver ? 'Multi-Patient' : '1 Caregiver',
-    },
-    {
-      icon: Mail,
-      title: 'Care Messages',
-      description: 'Review critical AI attention alerts and direct care messages',
-      href: '/dashboard/messages',
-      color: 'text-rose-600',
-      bg: 'bg-rose-50',
-      badge: `${criticalAlerts.length} Alerts`,
-    },
-    {
-      icon: MessageSquare,
-      title: 'AI Health Consult',
-      description: isCaregiver
-        ? 'Ask clinical and care questions about connected patients'
-        : 'Ask AI questions about your lab tests and prescriptions',
-      href: '/dashboard/chat',
-      color: 'text-electric-blue',
-      bg: 'bg-electric-blue/10',
-      badge: 'Grounded AI',
-    },
-    {
-      icon: BarChart3,
-      title: 'Medical Biomarkers',
-      description: 'Track glucose, BP, cholesterol, and condition trends',
-      href: '/dashboard/analytics',
-      color: 'text-primary',
-      bg: 'bg-primary/10',
-      badge: 'Live Trends',
-    },
-    {
-      icon: FolderOpen,
-      title: 'Report Library',
-      description: 'Upload and review verified lab panels & prescriptions',
-      href: '/dashboard/reports',
-      color: 'text-secondary',
-      bg: 'bg-secondary/10',
-      badge: 'Auto-Analyzed',
-    },
-  ]
+  const quickActions = isCaregiver
+    ? [
+        {
+          icon: Users,
+          title: 'Connect Patients',
+          description: 'Connect your patients you want to care via instant Care Code',
+          href: '/dashboard/family',
+          color: 'text-secondary',
+          bg: 'bg-secondary/10',
+          badge: 'Multi-Patient',
+        },
+        {
+          icon: Mail,
+          title: 'Care Messages',
+          description: 'Review critical AI attention alerts and direct patient care messages',
+          href: '/dashboard/messages',
+          color: 'text-rose-600',
+          bg: 'bg-rose-50',
+          badge: `${criticalAlerts.length} Alerts`,
+        },
+        {
+          icon: BarChart3,
+          title: 'Patient Medical Stats',
+          description: 'Monitor vital trends, blood glucose, BP, and clinical biomarkers',
+          href: '/dashboard/analytics',
+          color: 'text-primary',
+          bg: 'bg-primary/10',
+          badge: 'Live Trends',
+        },
+      ]
+    : [
+        {
+          icon: Heart,
+          title: 'Connect Caregiver',
+          description: 'Connect your caregiver via instant Care Code',
+          href: '/dashboard/family',
+          color: 'text-secondary',
+          bg: 'bg-secondary/10',
+          badge: '1 Caregiver',
+        },
+        {
+          icon: Mail,
+          title: 'Care Messages',
+          description: 'Review critical AI attention alerts and direct care messages',
+          href: '/dashboard/messages',
+          color: 'text-rose-600',
+          bg: 'bg-rose-50',
+          badge: `${criticalAlerts.length} Alerts`,
+        },
+        {
+          icon: MessageSquare,
+          title: 'AI Health Consult',
+          description: 'Ask AI questions about your lab tests and prescriptions',
+          href: '/dashboard/chat',
+          color: 'text-electric-blue',
+          bg: 'bg-electric-blue/10',
+          badge: 'Grounded AI',
+        },
+        {
+          icon: BarChart3,
+          title: 'Medical Biomarkers',
+          description: 'Track glucose, BP, cholesterol, and condition trends',
+          href: '/dashboard/analytics',
+          color: 'text-primary',
+          bg: 'bg-primary/10',
+          badge: 'Live Trends',
+        },
+        {
+          icon: FolderOpen,
+          title: 'Report Library',
+          description: 'Upload and review verified lab panels & prescriptions',
+          href: '/dashboard/reports',
+          color: 'text-secondary',
+          bg: 'bg-secondary/10',
+          badge: 'Auto-Analyzed',
+        },
+      ]
 
   return (
     <div className="p-4 sm:p-5 md:p-8 max-w-[1400px]">
@@ -233,21 +262,120 @@ export function DashboardContent({
                   <Users className="size-4" />
                   <span>{isCaregiver ? 'Connect Patients' : 'Connect Caregiver'}</span>
                 </Link>
-                <Link
-                  href="/dashboard/chat"
-                  className="bg-white/80 hover:bg-white text-deep-navy border border-outline-variant/60 px-4 py-2.5 rounded-xl text-[13px] font-bold transition-all inline-flex items-center gap-2"
-                >
-                  <MessageSquare className="size-4 text-secondary" />
-                  <span>Ask AI Consult</span>
-                </Link>
+                {!isCaregiver && (
+                  <Link
+                    href="/dashboard/chat"
+                    className="bg-white/80 hover:bg-white text-deep-navy border border-outline-variant/60 px-4 py-2.5 rounded-xl text-[13px] font-bold transition-all inline-flex items-center gap-2"
+                  >
+                    <MessageSquare className="size-4 text-secondary" />
+                    <span>Ask AI Consult</span>
+                  </Link>
+                )}
               </div>
             </div>
           </div>
         </BorderBeam>
       </div>
 
+      {/* Connected Patients Health Monitoring (Caregivers Only) */}
+      {isCaregiver && (
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Users className="size-5 text-secondary" />
+              <h2 className="text-[18px] font-bold text-deep-navy">Connected Patients Health Monitoring</h2>
+            </div>
+            <Link href="/dashboard/family" className="text-[12px] font-bold text-primary hover:underline flex items-center gap-1">
+              <span>Manage Patients ({connectedPatients.length})</span>
+              <ArrowRight className="size-3.5" />
+            </Link>
+          </div>
+
+          {connectedPatients.length === 0 ? (
+            <div className="glass-panel organic-radius p-6 border border-white flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="size-11 rounded-full bg-secondary/10 flex items-center justify-center text-secondary shrink-0">
+                  <Users className="size-5" />
+                </div>
+                <div>
+                  <h4 className="text-[14px] font-bold text-deep-navy">No Connected Patients Yet</h4>
+                  <p className="text-[12px] text-on-surface-variant">
+                    Connect your patients you want to care for to monitor their medical stats, review reports, and consult AI.
+                  </p>
+                </div>
+              </div>
+              <Link href="/dashboard/family" className="btn-primary-gradient px-4 py-2 rounded-xl text-[12px] font-bold shrink-0">
+                Connect Patient Now
+              </Link>
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {connectedPatients.map((patient) => {
+                const displayName = patient.display_name || 'Connected Patient'
+                const patientId = patient.connected_user_id || patient.member_id
+
+                return (
+                  <div key={patient.id} className="glass-panel-strong rounded-2xl p-5 border border-white shadow-sm flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2.5">
+                          <div className="size-9 rounded-full bg-secondary/15 flex items-center justify-center font-bold text-secondary text-xs border border-secondary/20">
+                            PT
+                          </div>
+                          <div>
+                            <h4 className="text-[14px] font-bold text-deep-navy">{displayName}</h4>
+                            <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
+                              <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                              Active Monitoring
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-3 border-t border-outline-variant/20 grid grid-cols-2 gap-2 text-[12px]">
+                      <Link
+                        href={`/dashboard/chat?patient=${patientId}`}
+                        className="px-2.5 py-1.5 rounded-lg bg-primary text-white font-semibold text-center hover:bg-primary/90 flex items-center justify-center gap-1.5 shadow-2xs"
+                      >
+                        <Sparkles className="size-3.5" />
+                        <span>Ask AI</span>
+                      </Link>
+
+                      <Link
+                        href={`/dashboard/analytics?view=${patientId}`}
+                        className="px-2.5 py-1.5 rounded-lg bg-secondary/10 text-secondary font-semibold text-center hover:bg-secondary/20 flex items-center justify-center gap-1.5"
+                      >
+                        <BarChart3 className="size-3.5" />
+                        <span>Medical Stats</span>
+                      </Link>
+
+                      <Link
+                        href={`/dashboard/reports?patientId=${patientId}`}
+                        className="px-2.5 py-1.5 rounded-lg bg-surface-container text-deep-navy font-semibold text-center hover:bg-surface-container-high flex items-center justify-center gap-1.5"
+                      >
+                        <FolderOpen className="size-3.5" />
+                        <span>Reports</span>
+                      </Link>
+
+                      <Link
+                        href="/dashboard/messages"
+                        className="px-2.5 py-1.5 rounded-lg bg-rose-50 text-rose-700 font-semibold text-center hover:bg-rose-100 flex items-center justify-center gap-1.5 border border-rose-200/60"
+                      >
+                        <Mail className="size-3.5" />
+                        <span>Messages</span>
+                      </Link>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Quick Actions Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className={`grid gap-4 sm:grid-cols-2 ${isCaregiver ? 'lg:grid-cols-3' : 'lg:grid-cols-5'}`}>
         {quickActions.map((action) => (
           <Link key={action.href} href={action.href} className="block group">
             <div className="glass-panel organic-radius p-5 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg active:scale-[0.98] active:ring-2 active:ring-secondary/40 cursor-pointer h-full select-none group-hover:border-secondary/30 flex flex-col justify-between">

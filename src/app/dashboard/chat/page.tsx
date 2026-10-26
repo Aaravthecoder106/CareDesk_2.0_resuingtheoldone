@@ -8,6 +8,8 @@ import { Send, Trash2, Loader2, ImagePlus, X, Users, Sparkles, Shield, User, Hea
 import { Markdown } from '@/components/markdown'
 import { AiOrb } from '@/components/ai-orb'
 import { useSearchParams } from 'next/navigation'
+import { useUser } from '@/components/auth-context'
+import Link from 'next/link'
 
 interface Message {
   id: string
@@ -28,6 +30,8 @@ interface FamilyMember {
 
 function ChatContent() {
   const { t } = useLanguage()
+  const { user } = useUser()
+  const isCaregiver = user?.role === 'caregiver' || user?.user_metadata?.elder_care_role === 'caregiver'
   const searchParams = useSearchParams()
   const patientParam = searchParams.get('patient') || 'me'
 
@@ -63,7 +67,7 @@ function ChatContent() {
 
   useEffect(() => {
     fetchFamily()
-  }, [])
+  }, [isCaregiver])
 
   useEffect(() => {
     if (patientParam && patientParam !== selectedPatientId) {
@@ -86,6 +90,10 @@ function ChatContent() {
         const data = await res.json()
         const accepted = (data.members || []).filter((m: FamilyMember) => m.status === 'accepted')
         setFamilyMembers(accepted)
+        if (isCaregiver && accepted.length > 0 && (selectedPatientId === 'me' || !selectedPatientId)) {
+          const firstTargetId = accepted[0].connected_user_id || accepted[0].member_id
+          setSelectedPatientId(firstTargetId)
+        }
       }
     } catch (e) {
       console.error('Failed to load family members:', e)
@@ -233,9 +241,13 @@ function ChatContent() {
       {/* Header */}
       <div className="mb-3 sm:mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-[22px] sm:text-[24px] font-bold text-deep-navy">CareDesk AI Health Consult</h1>
+          <h1 className="text-[22px] sm:text-[24px] font-bold text-deep-navy">
+            {isCaregiver ? 'Patient Health AI Consult' : 'CareDesk AI Health Consult'}
+          </h1>
           <p className="mt-1 text-[13px] sm:text-[14px] text-on-surface-variant">
-            Ask clinical and daily care questions grounded in verified medical records and lab reports.
+            {isCaregiver
+              ? 'Ask clinical and daily care questions regarding your connected patient, grounded in verified medical records and lab reports.'
+              : 'Ask clinical and daily care questions grounded in verified medical records and lab reports.'}
           </p>
         </div>
         {messages.length > 0 && (
@@ -246,23 +258,45 @@ function ChatContent() {
         )}
       </div>
 
-      {/* Patient Switcher for Caregivers */}
+      {/* If caregiver has no connected patients */}
+      {isCaregiver && familyMembers.length === 0 && (
+        <div className="glass-panel organic-radius p-8 text-center max-w-lg mx-auto my-10 border border-white">
+          <div className="size-14 rounded-full bg-secondary/10 flex items-center justify-center text-secondary mx-auto mb-3">
+            <Users className="size-7" />
+          </div>
+          <h3 className="text-[17px] font-bold text-deep-navy">No Connected Patients Yet</h3>
+          <p className="mt-1.5 text-[13px] text-on-surface-variant leading-relaxed">
+            As a caregiver, your AI chat is grounded in the medical records and lab reports of your connected patients. Connect your patients first to begin consulting AI about their health.
+          </p>
+          <Link
+            href="/dashboard/family"
+            className="mt-4 btn-primary-gradient px-4 py-2 rounded-xl text-[13px] font-bold inline-flex items-center gap-2"
+          >
+            <Users className="size-4" />
+            <span>Connect Patients</span>
+          </Link>
+        </div>
+      )}
+
+      {/* Patient Switcher for Caregivers & Patients */}
       {familyMembers.length > 0 && (
         <div className="flex flex-wrap items-center gap-2 mb-3 bg-surface-container-low/70 p-2.5 rounded-2xl border border-outline-variant/30">
           <span className="text-[12px] font-bold text-deep-navy flex items-center gap-1.5 pl-1">
-            <Users className="size-3.5 text-secondary" /> Context:
+            <Users className="size-3.5 text-secondary" /> {isCaregiver ? 'Connected Patient:' : 'Context:'}
           </span>
-          <button
-            onClick={() => setSelectedPatientId('me')}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-semibold transition-all ${
-              selectedPatientId === 'me'
-                ? 'bg-primary text-white shadow-sm ring-1 ring-secondary/50'
-                : 'bg-white text-on-surface-variant hover:bg-white/80 border border-outline-variant/40'
-            }`}
-          >
-            <User className="size-3.5" />
-            <span>My Own Health</span>
-          </button>
+          {!isCaregiver && (
+            <button
+              onClick={() => setSelectedPatientId('me')}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-semibold transition-all ${
+                selectedPatientId === 'me'
+                  ? 'bg-primary text-white shadow-sm ring-1 ring-secondary/50'
+                  : 'bg-white text-on-surface-variant hover:bg-white/80 border border-outline-variant/40'
+              }`}
+            >
+              <User className="size-3.5" />
+              <span>My Own Health</span>
+            </button>
+          )}
           {familyMembers.map((m) => {
             const memberTargetId = m.connected_user_id || m.member_id
             const isSelected = selectedPatientId === memberTargetId

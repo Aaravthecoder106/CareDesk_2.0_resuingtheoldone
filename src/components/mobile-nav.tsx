@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Show } from '@/components/auth-context'
+import { Show, useUser } from '@/components/auth-context'
 import { UserMenu } from '@/components/user-menu'
 import { Logo } from '@/components/logo'
 import { cn } from '@/lib/utils'
@@ -24,6 +24,7 @@ import { useState, useEffect } from 'react'
 export function MobileNav() {
   const pathname = usePathname()
   const { t } = useLanguage()
+  const { user } = useUser()
   const [isOpen, setIsOpen] = useState(false)
   const [pendingHref, setPendingHref] = useState<string | null>(null)
 
@@ -31,15 +32,25 @@ export function MobileNav() {
     setPendingHref(null)
   }, [pathname])
 
-  const navItems = [
-    { href: '/dashboard', label: t('nav.dashboard'), icon: LayoutDashboard },
-    { href: '/dashboard/reports', label: t('nav.reports'), icon: FolderOpen },
-    { href: '/dashboard/messages', label: t('nav.messages'), icon: Mail },
-    { href: '/dashboard/chat', label: t('nav.chat'), icon: MessageSquare },
-    { href: '/dashboard/analytics', label: t('nav.analytics'), icon: BarChart3 },
-    { href: '/dashboard/family', label: t('nav.family'), icon: Users },
-    { href: '/dashboard/settings', label: t('nav.settings'), icon: Settings },
-  ]
+  const isCaregiver = user?.role === 'caregiver' || user?.user_metadata?.elder_care_role === 'caregiver'
+
+  const navItems = isCaregiver
+    ? [
+        { href: '/dashboard', label: t('nav.dashboard'), icon: LayoutDashboard },
+        { href: '/dashboard/family', label: 'Patients', icon: Users },
+        { href: '/dashboard/analytics', label: 'Medical Stats', icon: BarChart3 },
+        { href: '/dashboard/messages', label: t('nav.messages'), icon: Mail },
+        { href: '/dashboard/settings', label: t('nav.settings'), icon: Settings },
+      ]
+    : [
+        { href: '/dashboard', label: t('nav.dashboard'), icon: LayoutDashboard },
+        { href: '/dashboard/reports', label: t('nav.reports'), icon: FolderOpen },
+        { href: '/dashboard/messages', label: t('nav.messages'), icon: Mail },
+        { href: '/dashboard/chat', label: t('nav.chat'), icon: MessageSquare },
+        { href: '/dashboard/analytics', label: 'Medical Stats', icon: BarChart3 },
+        { href: '/dashboard/family', label: 'Caregiver', icon: Users },
+        { href: '/dashboard/settings', label: t('nav.settings'), icon: Settings },
+      ]
 
   return (
     <>
