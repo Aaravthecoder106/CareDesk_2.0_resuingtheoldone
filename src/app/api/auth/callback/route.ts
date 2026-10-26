@@ -5,11 +5,21 @@ export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
   const next = searchParams.get('next') ?? '/dashboard'
+  const role = searchParams.get('role')
 
   if (code) {
     const supabase = await createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
+      if (role) {
+        await supabase.auth.updateUser({
+          data: {
+            role,
+            elder_care_role: role,
+          },
+        }).catch(() => {})
+      }
+
       const forwardedHost = request.headers.get('x-forwarded-host')
       const isLocalEnv = process.env.NODE_ENV === 'development'
       if (isLocalEnv) {
