@@ -30,13 +30,6 @@ function SignUpContent() {
     setErrorMessage('')
     setLoading(true)
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-    if (supabaseUrl.includes('placeholder') || !supabaseUrl) {
-      setErrorMessage('Supabase is not configured yet. Please configure NEXT_PUBLIC_SUPABASE_URL in your environment.')
-      setLoading(false)
-      return
-    }
-
     if (password.length < 6) {
       setErrorMessage('Password must be at least 6 characters')
       setLoading(false)
@@ -87,13 +80,6 @@ function SignUpContent() {
   async function handleGoogleSignUp() {
     setErrorMessage('')
     setOauthLoading(true)
-
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-    if (supabaseUrl.includes('placeholder') || !supabaseUrl) {
-      setErrorMessage('Google OAuth is not configured: Supabase URL is set to placeholder. Please configure your environment variables or use Email/Password sign up.')
-      setOauthLoading(false)
-      return
-    }
 
     try {
       const supabase = createBrowserSupabaseClient()
