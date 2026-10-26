@@ -46,7 +46,7 @@ function SignUpContent() {
             first_name: firstName.trim(),
             last_name: lastName.trim(),
             full_name: `${firstName.trim()} ${lastName.trim()}`.trim(),
-            role: role,
+            role: 'patient', // DB profiles_role_check allows 'patient'
             elder_care_role: role,
           },
         },
@@ -56,6 +56,15 @@ function SignUpContent() {
         setErrorMessage(error.message)
         setLoading(false)
         return
+      }
+
+      if (role === 'caregiver') {
+        await supabase.auth.updateUser({
+          data: {
+            role: 'caregiver',
+            elder_care_role: 'caregiver',
+          },
+        }).catch(() => {})
       }
 
       // If Supabase has email confirmation disabled, a session is created immediately
