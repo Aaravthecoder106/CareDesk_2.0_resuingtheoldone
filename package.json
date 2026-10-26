@@ -9,7 +9,7 @@
     "lint": "eslint",
     "test": "node --test --experimental-strip-types \"tests/**/*.test.ts\"",
     "test:browser": "node scripts/verify-browser-dom.mjs",
-    "video:generate": "node scripts/generate-demo-video.mjs"
+    "video:generate": "node scripts/build-saas-ad.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
