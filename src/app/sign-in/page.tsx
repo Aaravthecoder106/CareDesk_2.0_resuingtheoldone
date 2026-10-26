@@ -24,6 +24,13 @@ function SignInContent() {
     setErrorMessage('')
     setLoading(true)
 
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+    if (supabaseUrl.includes('placeholder') || !supabaseUrl) {
+      setErrorMessage('Supabase is not configured yet. Please configure NEXT_PUBLIC_SUPABASE_URL in your environment.')
+      setLoading(false)
+      return
+    }
+
     try {
       const supabase = createBrowserSupabaseClient()
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -50,6 +57,13 @@ function SignInContent() {
   async function handleGoogleSignIn() {
     setErrorMessage('')
     setOauthLoading(true)
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+    if (supabaseUrl.includes('placeholder') || !supabaseUrl) {
+      setErrorMessage('Google OAuth is not configured: Supabase URL is set to placeholder. Please configure your environment variables or use Email/Password sign in.')
+      setOauthLoading(false)
+      return
+    }
 
     try {
       const supabase = createBrowserSupabaseClient()
