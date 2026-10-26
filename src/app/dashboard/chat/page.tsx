@@ -278,25 +278,12 @@ function ChatContent() {
         </div>
       )}
 
-      {/* Patient Switcher for Caregivers & Patients */}
-      {familyMembers.length > 0 && (
+      {/* Patient Switcher for Caregivers Only */}
+      {isCaregiver && familyMembers.length > 0 && (
         <div className="flex flex-wrap items-center gap-2 mb-3 bg-surface-container-low/70 p-2.5 rounded-2xl border border-outline-variant/30">
           <span className="text-[12px] font-bold text-deep-navy flex items-center gap-1.5 pl-1">
-            <Users className="size-3.5 text-secondary" /> {isCaregiver ? 'Connected Patient:' : 'Context:'}
+            <Users className="size-3.5 text-secondary" /> Connected Patient:
           </span>
-          {!isCaregiver && (
-            <button
-              onClick={() => setSelectedPatientId('me')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-semibold transition-all ${
-                selectedPatientId === 'me'
-                  ? 'bg-primary text-white shadow-sm ring-1 ring-secondary/50'
-                  : 'bg-white text-on-surface-variant hover:bg-white/80 border border-outline-variant/40'
-              }`}
-            >
-              <User className="size-3.5" />
-              <span>My Own Health</span>
-            </button>
-          )}
           {familyMembers.map((m) => {
             const memberTargetId = m.connected_user_id || m.member_id
             const isSelected = selectedPatientId === memberTargetId
@@ -312,7 +299,6 @@ function ChatContent() {
               >
                 <Heart className="size-3.5" />
                 <span>{m.display_name}</span>
-                {m.relation && <span className="text-[10px] opacity-80 font-normal">({m.relation})</span>}
               </button>
             )
           })}

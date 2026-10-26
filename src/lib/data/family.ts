@@ -44,11 +44,15 @@ export async function getFamilyMembers(): Promise<FamilyMemberWithDetails[]> {
     ])
   )
 
+  const userRole = (user.user_metadata?.elder_care_role || user.user_metadata?.role || 'caregiver') as string
+  const isPatient = userRole === 'patient'
+
   return links.map((l) => {
     const connectedId = l.owner_id === userId ? l.member_id : l.owner_id
     const info = userMap.get(connectedId)
     return {
       ...l,
+      relation: isPatient ? 'Caregiver' : 'Patient',
       display_name: info?.name,
       member_email: info?.email,
       connected_user_id: connectedId,

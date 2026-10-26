@@ -172,22 +172,12 @@ function AnalyticsContent() {
         </div>
       )}
 
-      {/* Patient Switcher Tabs */}
-      {family.length > 0 && (
-        <div className="mb-6 flex flex-wrap gap-2 bg-surface-container-low/70 p-2 rounded-2xl border border-outline-variant/30">
-          {!isCaregiver && (
-            <button
-              onClick={() => setViewing('me')}
-              className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[13px] font-semibold transition-all ${
-                viewing === 'me'
-                  ? 'bg-primary text-white shadow-sm ring-1 ring-secondary/50'
-                  : 'bg-white text-on-surface-variant hover:bg-white/80 border border-outline-variant/40'
-              }`}
-            >
-              <User className="size-3.5" />
-              <span>My Analytics</span>
-            </button>
-          )}
+      {/* Patient Switcher Tabs (Caregivers Only) */}
+      {isCaregiver && family.length > 0 && (
+        <div className="mb-6 flex flex-wrap items-center gap-2 bg-surface-container-low/70 p-2.5 rounded-2xl border border-outline-variant/30">
+          <span className="text-[12px] font-bold text-deep-navy flex items-center gap-1.5 pl-1 my-auto mr-1">
+            <Users className="size-3.5 text-secondary" /> Connected Patient:
+          </span>
           {family.map((f) => (
             <button
               key={f.user_id}

@@ -613,38 +613,46 @@ function FamilyContent() {
                       </div>
 
                       {/* Care Actions */}
-                      <div className="pt-3 border-t border-outline-variant/30 flex flex-wrap gap-2">
+                      <div className="pt-3 border-t border-outline-variant/30 flex flex-wrap items-center gap-2">
                         <Link
                           href={`/dashboard/messages`}
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold bg-rose-50 text-rose-700 hover:bg-rose-100 transition-colors border border-rose-200"
                         >
                           <Mail className="size-3.5" />
-                          <span>Messages & Alerts</span>
+                          <span>{isCaregiver ? 'Messages & Alerts' : 'Message Caregiver'}</span>
                         </Link>
 
-                        <Link
-                          href={`/dashboard/analytics?view=${targetUserId}`}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold bg-secondary/10 text-secondary hover:bg-secondary/20 transition-colors"
-                        >
-                          <BarChart3 className="size-3.5" />
-                          <span>Medical Stats</span>
-                        </Link>
+                        {isCaregiver ? (
+                          <>
+                            <Link
+                              href={`/dashboard/analytics?view=${targetUserId}`}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold bg-secondary/10 text-secondary hover:bg-secondary/20 transition-colors"
+                            >
+                              <BarChart3 className="size-3.5" />
+                              <span>Medical Stats</span>
+                            </Link>
 
-                        <Link
-                          href={`/dashboard/chat?patient=${targetUserId}`}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold bg-primary text-white hover:bg-primary/90 transition-colors"
-                        >
-                          <MessageSquare className="size-3.5" />
-                          <span>Ask AI</span>
-                        </Link>
+                            <Link
+                              href={`/dashboard/chat?patient=${targetUserId}`}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold bg-primary text-white hover:bg-primary/90 transition-colors"
+                            >
+                              <MessageSquare className="size-3.5" />
+                              <span>Ask AI</span>
+                            </Link>
 
-                        <Link
-                          href={`/dashboard/reports?patientId=${targetUserId}`}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold bg-surface-container hover:bg-surface-container-high text-deep-navy transition-colors"
-                        >
-                          <FileText className="size-3.5" />
-                          <span>Reports</span>
-                        </Link>
+                            <Link
+                              href={`/dashboard/reports?patientId=${targetUserId}`}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold bg-surface-container hover:bg-surface-container-high text-deep-navy transition-colors"
+                            >
+                              <FileText className="size-3.5" />
+                              <span>Reports</span>
+                            </Link>
+                          </>
+                        ) : (
+                          <span className="text-[11px] text-on-surface-variant bg-surface-container-low px-2.5 py-1 rounded-md border border-outline-variant/30">
+                            Authorized to monitor your vitals & lab reports
+                          </span>
+                        )}
                       </div>
                     </div>
                   )
