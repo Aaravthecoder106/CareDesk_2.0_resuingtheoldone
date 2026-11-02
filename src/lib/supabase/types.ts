@@ -682,7 +682,7 @@ export type Database = {
       };
     };
     Enums: {
-      user_role: "patient" | "doctor" | "admin";
+      user_role: "patient" | "caregiver" | "doctor" | "admin";
       report_status: "pending" | "processing" | "ready" | "failed";
     };
     CompositeTypes: {

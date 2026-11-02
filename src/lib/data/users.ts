@@ -52,10 +52,12 @@ export async function getCurrentPatient(): Promise<Tables<'patients'> | null> {
 export async function ensureCurrentUserProvisioned(): Promise<Tables<'users'> | null> {
   const existing = await getCurrentUser()
   if (existing) {
-    const admin = createAdminSupabaseClient()
-    await admin
-      .from('patients')
-      .upsert({ id: existing.id }, { onConflict: 'id', ignoreDuplicates: true })
+    if (existing.role === 'patient') {
+      const admin = createAdminSupabaseClient()
+      await admin
+        .from('patients')
+        .upsert({ id: existing.id }, { onConflict: 'id', ignoreDuplicates: true })
+    }
     return existing
   }
 
@@ -67,6 +69,7 @@ export async function ensureCurrentUserProvisioned(): Promise<Tables<'users'> | 
   const firstName = user.user_metadata?.first_name || user.user_metadata?.full_name?.split(' ')[0] || null
   const lastName = user.user_metadata?.last_name || user.user_metadata?.full_name?.split(' ').slice(1).join(' ') || null
   const userEmail = (user.email || '').trim().toLowerCase()
+  const userRole = (user.user_metadata?.role || user.user_metadata?.elder_care_role) === 'caregiver' ? 'caregiver' : 'patient'
 
   // 1. Check if legacy records exist under a previous ID (e.g. Clerk user_...)
   if (userEmail) {
@@ -92,13 +95,15 @@ export async function ensureCurrentUserProvisioned(): Promise<Tables<'users'> | 
           email: userEmail,
           first_name: firstName,
           last_name: lastName,
-          role: 'patient',
+          role: userRole,
         })
 
-      // Provision new patient row
-      await admin
-        .from('patients')
-        .insert({ id: user.id })
+      // Provision new patient row only for patients
+      if (userRole === 'patient') {
+        await admin
+          .from('patients')
+          .insert({ id: user.id })
+      }
 
       // Migrate patient child records
       await admin.from('reports').update({ patient_id: user.id }).eq('patient_id', legacyUser.id)
@@ -132,14 +137,16 @@ export async function ensureCurrentUserProvisioned(): Promise<Tables<'users'> | 
       email: userEmail,
       first_name: firstName,
       last_name: lastName,
-      role: 'patient',
+      role: userRole,
     }, { onConflict: 'id' })
 
   if (userError) throw new Error(`ensureCurrentUserProvisioned: ${userError.message}`)
 
-  await admin
-    .from('patients')
-    .upsert({ id: user.id }, { onConflict: 'id', ignoreDuplicates: true })
+  if (userRole === 'patient') {
+    await admin
+      .from('patients')
+      .upsert({ id: user.id }, { onConflict: 'id', ignoreDuplicates: true })
+  }
 
   return getCurrentUser()
 }

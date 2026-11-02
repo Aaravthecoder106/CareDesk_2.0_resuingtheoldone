@@ -5,6 +5,7 @@ export type NormalizedUser = {
   email: string | null
   firstName: string | null
   lastName: string | null
+  role?: 'patient' | 'caregiver'
 }
 
 export interface UserJSONLike {
@@ -44,12 +45,17 @@ export function fromSupabaseUser(user: SupabaseAuthUserLike): NormalizedUser {
     user.user_metadata?.last_name ||
     user.user_metadata?.full_name?.split(' ').slice(1).join(' ') ||
     null
+  const role =
+    (user.user_metadata?.role || user.user_metadata?.elder_care_role) === 'caregiver'
+      ? 'caregiver'
+      : 'patient'
 
   return {
     id: user.id,
     email: user.email ?? null,
     firstName,
     lastName,
+    role,
   }
 }
 
@@ -93,5 +99,6 @@ export function mapToUserRow(
     email: user.email,
     first_name: user.firstName,
     last_name: user.lastName,
+    ...(user.role ? { role: user.role } : {}),
   }
 }

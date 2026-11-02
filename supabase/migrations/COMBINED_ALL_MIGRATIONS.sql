@@ -9,8 +9,9 @@ CREATE EXTENSION IF NOT EXISTS "vector" WITH SCHEMA public;
 
 -- Enums -----------------------------------------------------------------------
 DO $$ BEGIN
-  CREATE TYPE user_role AS ENUM ('patient', 'doctor', 'admin');
-EXCEPTION WHEN duplicate_object THEN null;
+  CREATE TYPE user_role AS ENUM ('patient', 'caregiver', 'doctor', 'admin');
+EXCEPTION WHEN duplicate_object THEN
+  ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'caregiver';
 END $$;
 
 DO $$ BEGIN
@@ -124,24 +125,42 @@ RETURNS TRIGGER
 LANGUAGE plpgsql
 SECURITY DEFINER SET search_path = public
 AS $$
+DECLARE
+  chosen_role_text text;
+  final_role public.user_role;
 BEGIN
+  chosen_role_text := COALESCE(
+    NEW.raw_user_meta_data->>'role',
+    NEW.raw_user_meta_data->>'elder_care_role',
+    'patient'
+  );
+
+  IF chosen_role_text = 'caregiver' THEN
+    final_role := 'caregiver'::public.user_role;
+  ELSE
+    final_role := 'patient'::public.user_role;
+  END IF;
+
   INSERT INTO public.users (id, email, first_name, last_name, role)
   VALUES (
-    NEW.id,
+    NEW.id::text,
     COALESCE(NEW.email, ''),
     COALESCE(NEW.raw_user_meta_data->>'first_name', NEW.raw_user_meta_data->>'full_name', ''),
     COALESCE(NEW.raw_user_meta_data->>'last_name', ''),
-    'patient'
+    final_role
   )
   ON CONFLICT (id) DO UPDATE SET
     email = EXCLUDED.email,
     first_name = COALESCE(NULLIF(EXCLUDED.first_name, ''), public.users.first_name),
     last_name = COALESCE(NULLIF(EXCLUDED.last_name, ''), public.users.last_name),
+    role = EXCLUDED.role,
     updated_at = now();
 
-  INSERT INTO public.patients (id)
-  VALUES (NEW.id)
-  ON CONFLICT (id) DO NOTHING;
+  IF final_role = 'patient' THEN
+    INSERT INTO public.patients (id)
+    VALUES (NEW.id::text)
+    ON CONFLICT (id) DO NOTHING;
+  END IF;
 
   RETURN NEW;
 END;

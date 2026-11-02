@@ -46,7 +46,7 @@ function SignUpContent() {
             first_name: firstName.trim(),
             last_name: lastName.trim(),
             full_name: `${firstName.trim()} ${lastName.trim()}`.trim(),
-            role: 'patient', // DB profiles_role_check allows 'patient'
+            role,
             elder_care_role: role,
           },
         },

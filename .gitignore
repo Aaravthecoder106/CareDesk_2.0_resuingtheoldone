@@ -46,6 +46,8 @@ yarn-error.log*
 
 # video assets
 /video-assets/
+*.mp4
+/scratch/
 
 # typescript
 *.tsbuildinfo

@@ -47,12 +47,14 @@ export async function provisionUser(
     }
   }
 
-  // Idempotent patient provisioning
-  const { error: patientError } = await admin
-    .from('patients')
-    .upsert({ id: user.id }, { onConflict: 'id', ignoreDuplicates: true })
-  if (patientError) {
-    return { ok: false, error: `patients upsert: ${patientError.message}` }
+  // Idempotent patient provisioning (only for patients, never caregivers)
+  if (user.role !== 'caregiver') {
+    const { error: patientError } = await admin
+      .from('patients')
+      .upsert({ id: user.id }, { onConflict: 'id', ignoreDuplicates: true })
+    if (patientError) {
+      return { ok: false, error: `patients upsert: ${patientError.message}` }
+    }
   }
 
   return { ok: true }
